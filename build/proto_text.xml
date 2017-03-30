@@ -1,0 +1,103 @@
+<xml>
+   <set name="static_link" value="1" />
+   <include name="${HXCPP}/toolchain/haxe-target.xml" />
+
+   <files id="proto_text" dir="../modules/tensorflow/tensorflow" >
+      <compilerflag value="-I../modules/protobuf/src" />
+      <compilerflag value="-I../modules/tensorflow" />
+      <compilerflag value="-I../modules/eigen" />
+      <compilerflag value="-I../modules/zlib" />
+      <compilerflag value="-Igen" />
+      <compilerflag value="-DPLATFORM_WINDOWS" if="windows" />
+      <compilerflag value="-DCOMPILER_MSVC" if="isMsvc" />
+      <compilerflag value="-DNOMINMAX" if="windows" />
+
+      <section if="windows" >
+         <file name="core/platform/windows/windows_file_system.cc" />
+         <file name="core/platform/windows/port.cc" />
+         <file name="core/platform/windows/net.cc" />
+         <file name="core/platform/windows/error.cc" />
+         <file name="core/platform/windows/env_time.cc" />
+         <file name="core/platform/windows/env.cc" />
+      </section>
+      <file name="tools/proto_text/gen_proto_text_functions_lib.cc" />
+      <file name="tools/proto_text/gen_proto_text_functions.cc" />
+      <file name="core/platform/default/protobuf.cc" />
+      <file name="core/platform/tracing.cc" />
+      <file name="core/platform/tensor_coding.cc" />
+      <file name="core/platform/protobuf_util.cc" />
+      <file name="core/platform/file_system.cc" />
+      <file name="core/platform/env.cc" />
+      <file name="core/platform/env_time.cc" />
+      <file name="core/platform/setround.cc" />
+      <file name="core/platform/denormal.cc" />
+      <file name="core/platform/default/tracing.cc" />
+      <file name="core/platform/default/logging.cc" />
+      <file name="core/platform/cpu_info.cc" />
+      <file name="core/lib/wav/wav_io.cc" />
+      <file name="core/lib/strings/stringprintf.cc" />
+      <file name="core/lib/strings/strcat.cc" />
+      <file name="core/lib/strings/str_util.cc" />
+      <file name="core/lib/strings/scanner.cc" />
+      <file name="core/lib/strings/proto_text_util.cc" />
+      <file name="core/lib/strings/ordered_code.cc" />
+      <file name="core/lib/strings/numbers.cc" />
+      <file name="core/lib/random/weighted_picker.cc" />
+      <file name="core/lib/random/simple_philox.cc" />
+      <file name="core/lib/random/random.cc" />
+      <file name="core/lib/random/distribution_sampler.cc" />
+      <file name="core/lib/io/zlib_outputbuffer.cc" />
+      <file name="core/lib/io/zlib_inputstream.cc" />
+      <file name="core/lib/io/two_level_iterator.cc" />
+      <file name="core/lib/io/table_builder.cc" />
+      <file name="core/lib/io/table.cc" />
+      <file name="core/lib/io/record_writer.cc" />
+      <file name="core/lib/io/record_reader.cc" />
+      <file name="core/lib/io/random_inputstream.cc" />
+      <file name="core/lib/io/path.cc" />
+      <file name="core/lib/io/iterator.cc" />
+      <file name="core/lib/io/inputstream_interface.cc" />
+      <file name="core/lib/io/inputbuffer.cc" />
+      <file name="core/lib/io/format.cc" />
+      <file name="core/lib/io/compression.cc" />
+      <file name="core/lib/io/buffered_inputstream.cc" />
+      <file name="core/lib/io/block_builder.cc" />
+      <file name="core/lib/io/block.cc" />
+      <file name="core/lib/histogram/histogram.cc" />
+      <file name="core/lib/hash/hash.cc" />
+      <file name="core/lib/hash/crc32c.cc" />
+      <file name="core/lib/hash/crc32c_accelerate.cc" />
+      <file name="core/lib/core/threadpool.cc" />
+      <file name="core/lib/core/stringpiece.cc" />
+      <file name="core/lib/core/status.cc" />
+      <file name="core/lib/core/coding.cc" />
+      <file name="core/lib/core/arena.cc" />
+      <file name="core/platform/posix/error.cc" />
+   </files>
+
+   <set name="ZLIB_DIR" value="../modules/zlib"/>
+
+   <files id="zlib" dir="${ZLIB_DIR}" >
+     <compilerflag value="-I${ZLIB_DIR}"/>
+
+     <file name="adler32.c" />
+     <file name="crc32.c" />
+     <file name="infback.c" />
+     <file name="inflate.c" />
+     <file name="uncompr.c" />
+     <file name="compress.c" />
+     <file name="deflate.c" />
+     <file name="inffast.c" />
+     <file name="inftrees.c" />
+     <file name="trees.c" />
+     <file name="zutil.c" />
+   </files>
+
+   <target id="default" tool="linker" toolid="exe" output="bin/proto_text" >
+      <files id="proto_text" />
+      <files id="zlib" />
+      <lib name="lib/libprotobuf${LIBEXTRA}.a"  />
+      <lib name="lib/libpbcc${LIBEXTRA}.a"  />
+   </target>
+
+</xml>

@@ -1,0 +1,16 @@
+<xml>
+   <set name="static_link" value="1" />
+   <include name="${HXCPP}/toolchain/haxe-target.xml" />
+   <include name="gen/proto_text_files.xml" />
+
+   <files id="gen-files" dir="gen" >
+      <compilerflag value="-I../modules/protobuf/src" />
+      <compilerflag value="-DHAVE_PTHREAD" unless="windows" />
+   </files>
+
+   <target id="default" tool="linker" toolid="${haxelink}" output="lib/${LIBPREFIX}pb_text" >
+      <ext value="${LIBEXTRA}.a" />
+      <files id="pb-text-gen-files" />
+   </target>
+
+</xml>
