@@ -3,7 +3,7 @@ import sys.FileSystem;
 class Build
 {
    static var haxelibExtra:Array<String> = [ ];
-   static var builds = ["libprotobuf", "protoc", "libpbcc", "proto_text", "libpb_text", "tensorflow" ];
+   static var builds = ["libprotobuf", "protoc", "libpbcc", "proto_text", "libpb_text", "tensorflow", "haxegen" ];
    static var toolExt = Sys.systemName()=="Windows" ? ".exe" : "";
    static var commandError = false;
 
@@ -27,6 +27,12 @@ class Build
    {
       sys.FileSystem.createDirectory("bin");
       command("haxelib", ["run","hxcpp","protoc.xml" ] );
+   }
+
+   public static function haxegenBuild()
+   {
+      command("haxe", ["-main","haxegen.Gen", "-cpp", "obj", "-D", "HXCPP_M64" ] );
+      command('obj/Gen$toolExt', []);
    }
 
    public static function libpbccBuild()
@@ -71,6 +77,7 @@ class Build
          "tensorflow/core/example/feature.pb.cc",
          "tensorflow/core/example/example.pb.cc",
          "tensorflow/core/protobuf/rewriter_config.pb.cc",
+         "tensorflow/core/framework/op_gen_overrides.pb.cc",
       ];
       FileSystem.createDirectory("gen");
 

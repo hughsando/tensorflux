@@ -476,6 +476,7 @@
       <file name="tensorflow/core/kernels/spacetobatch_functor.cc" />
       <file name="tensorflow/core/kernels/spacetobatch_op.cc" />
       <file name="tensorflow/core/kernels/batchtospace_op.cc" />
+      <file name="tensorflow/core/framework/op_gen_lib.cc" />
 
    </files>
 
@@ -501,8 +502,36 @@
      <file name="zutil.c" />
    </files>
 
+   <files id="hxcpp" tags="haxe" >
+      <compilerflag value="-I../modules/protobuf/src" />
+      <compilerflag value="-I../modules/tensorflow" />
+      <compilerflag value="-I../modules/eigen" />
+      <compilerflag value="-I../modules/zlib" />
+      <compilerflag value="-Igen" />
+      <compilerflag value="-DPLATFORM_WINDOWS" if="windows" />
+      <compilerflag value="-DNOMINMAX" if="windows" />
+      <compilerflag value="-DTF_COMPILE_LIBRARY" />
+      <section if="isMsvc" >
+         <compilerflag value="-DCOMPILER_MSVC" />
+         <compilerflag value="-D_WIN32_WINNT=0x0A00"/>
+         <compilerflag value="-DLANG_CXX11"/>
+         <compilerflag value='-D__VERSION__=\"MSVC\"'/>
+         <compilerflag value="-DWIN32"/>
+         <compilerflag value="-DOS_WIN"/>
+         <compilerflag value="-D_MBCS"/>
+         <compilerflag value="-DWIN32_LEAN_AND_MEAN"/>
+         <compilerflag value="-DNOGDI"/>
+         <compilerflag value="-DTENSORFLOW_USE_EIGEN_THREADPOOL"/>
+         <compilerflag value="-DEIGEN_HAS_C99_MATH"/>
+         <compilerflag value="-D_ITERATOR_DEBUG_LEVEL=0"/> 
+      </section>
+
+      <file name="src/GenHaxeApi.cpp" />
+   </files>
+
    <target id="default" tool="linker" toolid="dll" output="tensorflow" >
       <files id="tensorflow" />
+      <files id="hxcpp" />
       <outdir name="../ndll/${BINDIR}" />
       <ext value=".ndll" />
       <!--<files id="zlib" />-->
