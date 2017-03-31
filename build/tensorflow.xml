@@ -9,8 +9,47 @@
       <compilerflag value="-I../modules/zlib" />
       <compilerflag value="-Igen" />
       <compilerflag value="-DPLATFORM_WINDOWS" if="windows" />
-      <compilerflag value="-DCOMPILER_MSVC" if="isMsvc" />
       <compilerflag value="-DNOMINMAX" if="windows" />
+      <compilerflag value="-DTF_COMPILE_LIBRARY" />
+      <section if="isMsvc" >
+         <compilerflag value="-DCOMPILER_MSVC" />
+         <compilerflag value="-D_WIN32_WINNT=0x0A00"/>
+         <compilerflag value="-DLANG_CXX11"/>
+         <compilerflag value='-D__VERSION__=\"MSVC\"'/>
+         <compilerflag value="-DWIN32"/>
+         <compilerflag value="-DOS_WIN"/>
+         <compilerflag value="-D_MBCS"/>
+         <compilerflag value="-DWIN32_LEAN_AND_MEAN"/>
+         <compilerflag value="-DNOGDI"/>
+         <compilerflag value="-DTENSORFLOW_USE_EIGEN_THREADPOOL"/>
+         <compilerflag value="-DEIGEN_HAS_C99_MATH"/>
+         <compilerflag value="-D_ITERATOR_DEBUG_LEVEL=0"/>
+         <compilerflag value="/bigobj"/>
+         <compilerflag value="/nologo"/>
+         <compilerflag value="/GF"/>
+         <compilerflag value="/FC"/>
+         <compilerflag value="/MP"/>
+         <compilerflag value="/Gm-"/>
+         <compilerflag value="/wd4267"/>
+         <compilerflag value="/wd4244"/>
+         <compilerflag value="/wd4800"/>
+         <compilerflag value="/wd4503"/>
+         <compilerflag value="/wd4554"/>
+         <compilerflag value="/wd4996"/>
+         <compilerflag value="/wd4348"/>
+         <compilerflag value="/wd4018"/>
+         <compilerflag value="/wd4099"/>
+         <compilerflag value="/wd4146"/>
+         <compilerflag value="/wd4267"/>
+         <compilerflag value="/wd4305"/>
+         <compilerflag value="/wd4307"/>
+         <compilerflag value="/wd4715"/>
+         <compilerflag value="/wd4722"/>
+         <compilerflag value="/wd4723"/>
+         <compilerflag value="/wd4838"/>
+         <compilerflag value="/wd4309"/>
+         <compilerflag value="/wd4334"/>
+     </section>
 
 
 
@@ -89,7 +128,6 @@
       <file name="tensorflow/core/graph/control_flow.cc" />
       <file name="tensorflow/core/graph/costmodel.cc" />
       <file name="tensorflow/core/graph/edgeset.cc" />
-      <file name="tensorflow/core/graph/equal_graph_def.cc" />
       <file name="tensorflow/core/graph/gradients.cc" />
       <file name="tensorflow/core/graph/graph.cc" />
       <file name="tensorflow/core/graph/graph_constructor.cc" />
@@ -104,6 +142,13 @@
       <file name="tensorflow/core/graph/subgraph.cc" />
       <file name="tensorflow/core/graph/tensor_id.cc" />
       <file name="tensorflow/core/graph/validate.cc" />
+      <file name="tensorflow/core/grappler/optimizers/constant_folding.cc" />
+      <file name="tensorflow/core/grappler/optimizers/graph_rewriter.cc" />
+      <file name="tensorflow/core/grappler/optimizers/layout_optimizer.cc" />
+      <file name="tensorflow/core/grappler/optimizers/meta_optimizer.cc" />
+      <file name="tensorflow/core/grappler/optimizers/model_pruner.cc" />
+      <file name="tensorflow/core/grappler/utils.cc" />
+      <file name="tensorflow/core/grappler/devices.cc" />
       <file name="tensorflow/core/lib/core/arena.cc" />
       <file name="tensorflow/core/lib/core/bitmap.cc" />
       <file name="tensorflow/core/lib/core/coding.cc" />
@@ -152,17 +197,25 @@
       <file name="tensorflow/core/platform/env_time.cc" />
       <file name="tensorflow/core/platform/file_system.cc" />
       <file name="tensorflow/core/platform/hadoop/hadoop_file_system.cc" />
+      <file name="tensorflow/core/platform/posix/error.cc" />
 
       <section unless="windows">
          <file name="tensorflow/core/platform/posix/env.cc" />
          <file name="tensorflow/core/platform/posix/env_time.cc" />
-         <file name="tensorflow/core/platform/posix/error.cc" />
          <file name="tensorflow/core/platform/posix/load_library.cc" />
          <file name="tensorflow/core/platform/posix/net.cc" />
          <file name="tensorflow/core/platform/posix/port.cc" />
          <file name="tensorflow/core/platform/posix/posix_file_system.cc" />
          <file name="tensorflow/core/platform/posix/subprocess.cc" />
          <file name="tensorflow/core/platform/posix/tracing.cc" />
+      </section>
+      <section if="windows">
+         <file name="tensorflow/core/platform/windows/port.cc" />
+         <file name="tensorflow/core/platform/windows/windows_file_system.cc" />
+         <file name="tensorflow/core/platform/windows/net.cc" />
+         <file name="tensorflow/core/platform/windows/env.cc" />
+         <file name="tensorflow/core/platform/windows/env_time.cc" />
+         <file name="tensorflow/core/platform/windows/error.cc" />
       </section>
       <file name="tensorflow/core/platform/protobuf_util.cc" />
       <file name="tensorflow/core/platform/setround.cc" />
@@ -176,7 +229,6 @@
       <file name="tensorflow/core/util/example_proto_fast_parsing.cc" />
       <file name="tensorflow/core/util/example_proto_helper.cc" />
       <file name="tensorflow/core/util/guarded_philox_random.cc" />
-      <file name="tensorflow/core/util/memmapped_file_system.cc" />
       <file name="tensorflow/core/util/memmapped_file_system_writer.cc" />
       <file name="tensorflow/core/util/mirror_pad_mode.cc" />
       <file name="tensorflow/core/util/padding.cc" />
@@ -195,6 +247,7 @@
       <file name="tensorflow/core/util/use_cudnn.cc" />
       <file name="tensorflow/core/util/util.cc" />
       <file name="tensorflow/core/util/work_sharder.cc" />
+      <file name="tensorflow/core/util/memmapped_file_system.cc" />
       <file name="tensorflow/core/common_runtime/gpu/gpu_tracer.cc" />
       <file name="tensorflow/core/kernels/xent_op.cc" />
       <file name="tensorflow/core/kernels/where_op.cc" />

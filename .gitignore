@@ -1,0 +1,5 @@
+build/bin
+build/gen
+build/lib
+build/obj
+ndll

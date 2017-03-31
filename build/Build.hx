@@ -2,15 +2,19 @@ import sys.FileSystem;
 
 class Build
 {
-   static var haxelibExtra = new Array<String>();
+   static var haxelibExtra:Array<String> = [ ];
    static var builds = ["libprotobuf", "protoc", "libpbcc", "proto_text", "libpb_text", "tensorflow" ];
+   static var toolExt = Sys.systemName()=="Windows" ? ".exe" : "";
+   static var commandError = false;
+
    public static function command(exe:String, args:Array<String>)
    {
       if (exe=="haxelib")
          args = args.concat(haxelibExtra);
 
       Sys.println(exe +" " + args.join(' '));
-      Sys.command(exe,args);
+      if (Sys.command(exe,args)!=0)
+         commandError = true;
    }
 
    public static function libprotobufBuild()
@@ -30,8 +34,8 @@ class Build
       var pbCc = [ 
          "tensorflow/core/util/test_log.pb.cc",
          "tensorflow/core/util/saved_tensor_slice.pb.cc",
-         "tensorflow/core/util/memmapped_file_system.pb.cc",
          "tensorflow/core/util/event.pb.cc",
+         "tensorflow/core/util/memmapped_file_system.pb.cc",
          "tensorflow/core/protobuf/tensorflow_server.pb.cc",
          "tensorflow/core/protobuf/saver.pb.cc",
          "tensorflow/core/protobuf/queue_runner.pb.cc",
@@ -80,7 +84,7 @@ class Build
          if (!FileSystem.exists('gen/$file'))
          {
             var proto = file.substr(0,file.length-"pb.cc".length) + "proto";
-            command("bin/protoc.exe", ["-I../modules/tensorflow", "-I../modules/protobuf/src", '../modules/tensorflow/$proto', "--cpp_out","gen" ]);
+            command('bin/protoc$toolExt', ["-I../modules/tensorflow", "-I../modules/protobuf/src", '../modules/tensorflow/$proto', "--cpp_out","gen" ]);
          }
       }
       lines.push("</files></xml>");
@@ -162,7 +166,7 @@ class Build
          if (!FileSystem.exists('../../build/gen/$file'))
          {
             var proto = file.substr(0,file.length-"pb_text.cc".length) + "proto";
-            command("../../build/bin/proto_text", ["../../build/gen/tensorflow/core", "tensorflow/core", "tensorflow/tools/proto_text/placeholder.txt", proto ]);
+            command('../../build/bin/proto_text$toolExt', ["../../build/gen/tensorflow/core", "tensorflow/core", "tensorflow/tools/proto_text/placeholder.txt", proto ]);
          }
       }
       lines.push("</files></xml>");
@@ -179,14 +183,26 @@ class Build
       command("haxelib", ["run","hxcpp","tensorflow.xml" ] );
    }
 
+   static function deleteDirRecurse(dir:String)
+   {
+      for(file in FileSystem.readDirectory(dir))
+      {
+         var path = dir + "/" + file;
+         if (FileSystem.isDirectory(path))
+            deleteDirRecurse(path);
+         else
+            FileSystem.deleteFile(path);
+      }
+      FileSystem.deleteDirectory(dir);
+   }
+
 
    public static function cleanBuild()
    {
       for(dir in ["gen", "obj", "lib", "bin" ])
       {
-         // TODO - recurse
          try {
-            FileSystem.deleteDirectory(dir);
+            deleteDirRecurse(dir);
          } catch(d:Dynamic) { }
       }
    }
@@ -202,6 +218,11 @@ class Build
          {
             Sys.println('$build...');
             Reflect.field(Build, build + "Build")();
+            if (commandError)
+            {
+               Sys.println('There were errors building $build');
+               Sys.exit(-1);
+            }
          }
       }
       else if (option=="clean")
