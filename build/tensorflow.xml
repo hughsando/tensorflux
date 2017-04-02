@@ -477,6 +477,7 @@
       <file name="tensorflow/core/kernels/spacetobatch_op.cc" />
       <file name="tensorflow/core/kernels/batchtospace_op.cc" />
       <file name="tensorflow/core/framework/op_gen_lib.cc" />
+      <file name="tensorflow/cc/framework/cc_op_gen.cc" />
 
    </files>
 

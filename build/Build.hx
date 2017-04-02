@@ -32,6 +32,8 @@ class Build
    public static function haxegenBuild()
    {
       command("haxe", ["-main","haxegen.Gen", "-cpp", "obj", "-D", "HXCPP_M64" ] );
+      if (commandError)
+         return;
       command('obj/Gen$toolExt', []);
    }
 

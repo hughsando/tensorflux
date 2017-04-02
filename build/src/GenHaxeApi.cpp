@@ -40,6 +40,8 @@ limitations under the License.
 #include "tensorflow/core/platform/init_main.h"
 #include "tensorflow/core/platform/types.h"
 
+#include "tensorflow/cc/framework/cc_op_gen.h"
+
 namespace tensorflow {
 
 namespace {
@@ -843,174 +845,203 @@ void OpInfo::WriteClassDef(WritableFile* cc) const {
   TF_CHECK_OK(cc->Append(class_def));
 }
 
-void WriteCCOp(const OpDef& graph_op_def, const OpDef& interface_op_def,
-               const std::vector<string>& aliases, WritableFile* h,
-               WritableFile* cc) {
-  OpInfo op_info(graph_op_def, interface_op_def, aliases);
+} // anon namespace
 
-  op_info.WriteClassDecl(h);
-  op_info.WriteClassDef(cc);
+
+#define APPEND(x) TF_CHECK_OK(hx->Append( (x) ) )
+
+string ToHaxeType(const string &val)
+{
+   if (val=="bool")
+      return "Bool";
+   else if (val=="float" || val=="double" || val=="float32" || val=="float64" )
+      return "Float";
+   else if (val=="int" || val=="int32" )
+      return "Int";
+   else if (val=="string")
+      return "String";
+   else if (val=="type" || val=="dtype")
+      return "tf.Type";
+   else if (val.substr(0,5)=="list(")
+      return "Array<" + ToHaxeType(val.substr(5,val.size()-6)) + ">";
+   else if (val=="")
+      return "Dynamic";
+   else if (val=="Index")
+      return "Int";
+   else if (val[0]=='T')
+      return "tf.Tensor";
+   else if (val=="shape") // TODO - 'either' ?
+      return "Array<Int>";
+
+   printf("  unknown haxe type %s - assuming type restriction\n", val.c_str());
+   // Probably a type-restriction
+   return "tf.Tensor";
 }
 
-void StartFiles(bool internal, const string& dot_h_fname, WritableFile* h,
-                WritableFile* cc, string* op_header_guard) {
-  const string header =
-      R"header(// This file is MACHINE GENERATED! Do not edit.
 
-#include "tensorflow/cc/framework/ops.h"
-#include "tensorflow/cc/framework/scope.h"
-#include "tensorflow/core/framework/tensor.h"
-#include "tensorflow/core/framework/tensor_shape.h"
-#include "tensorflow/core/framework/types.h"
-#include "tensorflow/core/lib/gtl/array_slice.h"
-)header";
-
-  // TODO(keveman): Make namespaces configurable.
-  const string namespace_begin = internal ? R"namespace(
-namespace tensorflow {
-namespace ops {
-namespace internal {
-// NOTE: This namespace has internal TensorFlow details that
-// are not part of TensorFlow's public API.
-
-)namespace"
-                                          : R"namespace(
-namespace tensorflow {
-namespace ops {
-
-)namespace";
-
-  const string op_header = GetPath(dot_h_fname);
-  *op_header_guard = ToGuard(op_header);
-  const string cc_header = strings::StrCat(
-      R"include(// This file is MACHINE GENERATED! Do not edit.
-
-
-#include "tensorflow/cc/ops/const_op.h"
-)include",
-      "#include \"", op_header, "\"\n", namespace_begin);
-
-  const string filename = GetFilename(dot_h_fname);
-  const string doxygen = strings::StrCat("/// @defgroup ", filename, " ",
-                                         ToTitle(filename), "\n", "/// @{\n\n");
-
-  TF_CHECK_OK(h->Append(
-      strings::StrCat("// This file is MACHINE GENERATED! Do not edit.\n\n"
-                      "#ifndef ",
-                      *op_header_guard,
-                      "\n"
-                      "#define ",
-                      *op_header_guard, "\n\n")));
-  TF_CHECK_OK(h->Append(header));
-  TF_CHECK_OK(h->Append(namespace_begin));
-  TF_CHECK_OK(h->Append(doxygen));
-  TF_CHECK_OK(cc->Append(cc_header));
+string ToHaxeSuffix(const string &val)
+{
+   if (val.substr(0,5)=="list(")
+      return ToHaxeSuffix(val.substr(5,val.size()-6)) + "Array";
+   else if (val=="type" || val=="dtype")
+      return "Type";
+   else if (val[0]=='T')
+      return "Tensor";
+   else if (val=="shape") // TODO - 'either' ?
+      return "Shape";
+   string result = ToHaxeType(val);
+   if (result=="tf.Tensor")
+      return "Tensor";
+   return result;
 }
 
-void FinishFiles(bool internal, WritableFile* h, WritableFile* cc,
-                 const string& op_header_guard) {
-  const string footer = internal ? R"footer(}  // namespace internal
-}  // namespace ops
-}  // namespace tensorflow
-)footer"
-                                 :
-                                 R"footer(/// @}
-
-}  // namespace ops
-}  // namespace tensorflow
-)footer";
-
-  TF_CHECK_OK(h->Append(footer));
-  TF_CHECK_OK(
-      h->Append(strings::StrCat("\n#endif  ", "// ", op_header_guard, "\n")));
-  TF_CHECK_OK(cc->Append(footer));
-
-  TF_CHECK_OK(cc->Close());
-  TF_CHECK_OK(h->Close());
+bool canDefaultType(const string &inType)
+{
+   string val = ToHaxeType(inType);
+   return val=="Int" || val=="Float" || val=="Bool" || val=="String";
 }
 
-string MakeInternal(const string& fname) {
-  auto dot_pos = fname.rfind('.');
-  if (dot_pos == string::npos) {
-    return strings::StrCat(fname, "_internal");
+string StringToHaxe(const string& str) {
+  return strings::StrCat("\"", str_util::CEscape(str), "\"");
+}
+
+
+string DataTypeToHaxe(DataType dtype, bool forArray = false) {
+  switch (dtype) {
+     case DT_FLOAT : return forArray ? "cpp.Float32" : "Float";
+     case DT_DOUBLE : return "Float";
+     case DT_INT32 : return "Int";
+     case DT_UINT8 : return "Int";
+     case DT_INT16 : return "Int";
+     case DT_INT8 : return "Int";
+     case DT_STRING : return "string";
+     case DT_COMPLEX64 : return "tf.Complex";
+     case DT_INT64 : return "haxe.Int64";
+     case DT_BOOL : return "Bool";
+     case DT_QINT8 : return "Int";
+     case DT_QUINT8 : return "Int";
+     case DT_QINT32 : return "Int";
+     case DT_BFLOAT16 : return "Int";
+     case DT_QINT16 : return "Int";
+     case DT_QUINT16 : return "Int";
+     case DT_UINT16 : return "Int";
+     case DT_COMPLEX128 : return "tf.Complex";
+     case DT_HALF : return "Float";
+     case DT_RESOURCE : return "haxe.io.Bytes";
+     default: ;
+  }
+  return "Dynamic";
+}
+
+
+string DataTypeToHaxeTfType(DataType dtype) {
+  switch (dtype) {
+     case DT_FLOAT : return "tf.Type.Float32";
+     case DT_DOUBLE : return "tf.Type.Float64";
+     case DT_INT32 : return "tf.Type.Int32";
+     case DT_UINT8 : return "tf.Type.UInt32";
+     case DT_INT16 : return "tf.Type.Int16";
+     case DT_INT8 : return "tf.Type.Int8";
+     case DT_STRING : return "ty.Type.StringType";
+     case DT_COMPLEX64 : return "tf.Type.Complex64";
+     case DT_INT64 : return "tf.Type.Int64";
+     case DT_BOOL : return "tf.Type.BoolType";
+     case DT_QINT8 : return "tf.Type.QInt8";
+     case DT_QUINT8 : return "tf.Type.QUInt8";
+     case DT_QINT32 : return "tf.Type.QInt32";
+     case DT_BFLOAT16 : return "tf.Type.BFloat16";
+     case DT_QINT16 : return "tf.Type.QInt16";
+     case DT_QUINT16 : return "tf.Type.QUInt16";
+     case DT_UINT16 : return "tf.Type.UInt16";
+     case DT_COMPLEX128 : return "tf.Type.Complex128";
+     case DT_HALF : return "tf.Type.Half";
+     case DT_RESOURCE : return "tf.Type.Resource";
+     default: ;
+  }
+  return "null";
+}
+
+
+string ShapeToHaxe(const TensorShapeProto& shape) {
+  string haxe = "[";
+  for (const auto& dim : shape.dim()) {
+    if (haxe.size() > 1) strings::StrAppend(&haxe, ", ");
+    if (!dim.name().empty()) {
+      strings::StrAppend(&haxe, "(", StringToHaxe(dim.name()), "\", ",
+                         dim.size(), ")");
+    } else {
+      strings::StrAppend(&haxe, dim.size());
+    }
+  }
+  strings::StrAppend(&haxe, "]");
+  return haxe;
+}
+
+string AttrListToHaxe(const AttrValue& value) {
+  string ret;
+  if (value.list().s_size() > 0) {
+    for (int i = 0; i < value.list().s_size(); ++i) {
+      if (i > 0) strings::StrAppend(&ret, ", ");
+      strings::StrAppend(&ret, StringToHaxe(value.list().s(i)));
+    }
+  } else if (value.list().i_size() > 0) {
+    for (int i = 0; i < value.list().i_size(); ++i) {
+      if (i > 0) strings::StrAppend(&ret, ", ");
+      strings::StrAppend(&ret, value.list().i(i));
+    }
+  } else if (value.list().f_size() > 0) {
+    for (int i = 0; i < value.list().f_size(); ++i) {
+      if (i > 0) strings::StrAppend(&ret, ", ");
+      strings::StrAppend(&ret, value.list().f(i));
+    }
+  } else if (value.list().b_size() > 0) {
+    for (int i = 0; i < value.list().b_size(); ++i) {
+      if (i > 0) strings::StrAppend(&ret, ", ");
+      strings::StrAppend(&ret, value.list().b(i) ? "true" : "false");
+    }
+  } else if (value.list().type_size() > 0) {
+    for (int i = 0; i < value.list().type_size(); ++i) {
+      if (i > 0) strings::StrAppend(&ret, ", ");
+      strings::StrAppend(&ret, DataTypeToHaxe(value.list().type(i)));
+    }
+  } else if (value.list().shape_size() > 0) {
+    for (int i = 0; i < value.list().shape_size(); ++i) {
+      if (i > 0) strings::StrAppend(&ret, ", ");
+      strings::StrAppend(&ret, ShapeToHaxe(value.list().shape(i)));
+    }
+  }
+  return ret;
+}
+
+string getHaxeValue(const string& type, const AttrValue& value) {
+  if (type == "string") {
+    return "\"" + value.s() + "\"";
+  } else if (type == "int") {
+    return strings::StrCat(value.i());
+  } else if (type == "float") {
+    return strings::StrCat(value.f());
+  } else if (type == "bool") {
+    return value.b() ? "true" : "false";
+  } else if (type == "type") {
+    return DataTypeToHaxeTfType(value.type());
+  } else if (type == "shape") {
+    return ShapeToHaxe(value.shape());
+  } else if (type == "tensor") {
+    return "tf.Tensor";
   } else {
-    return strings::StrCat(fname.substr(0, dot_pos), "_internal",
-                           fname.substr(dot_pos));
+    return strings::StrCat("[", AttrListToHaxe(value), "]");
   }
 }
 
-}  // namespace
-
-void WriteCCOps(const OpList& ops, const string& dot_hx_fname,
-                const string& overrides_fnames) {
-  Env* env = Env::Default();
-
-  // Load the override map.
-  OpGenOverrideMap override_map;
-  if (!overrides_fnames.empty()) {
-    TF_CHECK_OK(override_map.LoadFileList(env, overrides_fnames));
-  }
-
-  #if 0
-  // Write the initial boilerplate to the .h and .cc files.
-  std::unique_ptr<WritableFile> h = nullptr;
-  std::unique_ptr<WritableFile> cc = nullptr;
-  TF_CHECK_OK(env->NewWritableFile(dot_h_fname, &h));
-  TF_CHECK_OK(env->NewWritableFile(dot_cc_fname, &cc));
-  string op_header_guard;
-  StartFiles(false, dot_h_fname, h.get(), cc.get(), &op_header_guard);
-
-  // Create the internal versions of these files for the hidden ops.
-  std::unique_ptr<WritableFile> internal_h = nullptr;
-  std::unique_ptr<WritableFile> internal_cc = nullptr;
-  const string internal_dot_h_fname = MakeInternal(dot_h_fname);
-  TF_CHECK_OK(env->NewWritableFile(internal_dot_h_fname, &internal_h));
-  TF_CHECK_OK(env->NewWritableFile(MakeInternal(dot_cc_fname), &internal_cc));
-  string internal_op_header_guard;
-  StartFiles(true /* internal */, internal_dot_h_fname, internal_h.get(),
-             internal_cc.get(), &internal_op_header_guard);
-  #endif
-
-  for (const auto& graph_op_def : ops.op()) {
-    // Skip deprecated ops.
-    // TODO(josh11b): If needed, can put them into a "deprecated" namespace
-    // instead of skipping.
-    if (graph_op_def.has_deprecation() &&
-        graph_op_def.deprecation().version() <= TF_GRAPH_DEF_VERSION) {
-      continue;
-    }
-    //if (graph_op_def.name() == "Const") continue;
-
-    // Incorporate overrides from override_map.
-    OpDef interface_op_def = graph_op_def;
-    const OpGenOverride* op_override =
-        override_map.ApplyOverride(&interface_op_def);
-    std::vector<string> aliases;
-    if (op_override) {
-      if (op_override->skip()) continue;
-      aliases.assign(op_override->alias().begin(), op_override->alias().end());
-      if (op_override->hide()) {
-        // Write hidden ops to _internal.h and _internal.cc.
-        //WriteCCOp(graph_op_def, interface_op_def, aliases, internal_h.get(),
-        //          internal_cc.get());
-        continue;
-      }
-    }
-
-    // This isn't a hidden op, write it to the main files.
-    OpInfo op_info(graph_op_def, interface_op_def, aliases);
-
-    printf("Op %s\n", op_info.op_name.c_str() );
-
-  }
-
-  
-  //FinishFiles(false, h.get(), cc.get(), op_header_guard);
-  //FinishFiles(true /* internal */, internal_h.get(), internal_cc.get(),
-  //            internal_op_header_guard);
+string remapName(const string &inName)
+{
+   if (inName=="var")
+      return "_" + inName;
+   return inName;
 }
 
-void genHxcppCode(HxString inPath)
+
+void genHxcppCode(HxString className, HxString classFile, HxString inFilter)
 {
    int argc = 1;
    char app[] = "app";
@@ -1020,10 +1051,192 @@ void genHxcppCode(HxString inPath)
    OpList ops;
    OpRegistry::Global()->Export(false, &ops);
    std::string overrides = "../modules/tensorflow/tensorflow/cc/ops/op_gen_overrides.pbtxt";
-   WriteCCOps(ops, ".hx", overrides);
+
+   std::string filter(inFilter.c_str());
+
+   Env* env = Env::Default();
+
+   // Load the override map.
+   OpGenOverrideMap override_map;
+   if (!overrides.empty())
+   {
+     TF_CHECK_OK(override_map.LoadFileList(env, overrides));
+   }
+
+   std::unique_ptr<WritableFile> hx = nullptr;
+
+   for (const auto& graph_op_def : ops.op())
+   {
+      // Skip deprecated ops.
+      if (graph_op_def.has_deprecation() &&
+          graph_op_def.deprecation().version() <= TF_GRAPH_DEF_VERSION)
+      {
+        continue;
+      }
+
+      string name = graph_op_def.name();
+      // Filter by category...
+      if (filter.find(":"+name+":")==string::npos)
+         continue;
+
+      // Incorporate overrides from override_map.
+      OpDef interface_op_def = graph_op_def;
+      const OpGenOverride* op_override =
+          override_map.ApplyOverride(&interface_op_def);
+      std::vector<string> aliases;
+      if (op_override)
+      {
+        if (op_override->skip())
+           continue;
+        aliases.assign(op_override->alias().begin(), op_override->alias().end());
+        if (op_override->hide())
+        {
+          continue;
+        }
+      }
+
+      // This isn't a hidden op, write it to the main files.
+      OpInfo op_info(graph_op_def, interface_op_def, aliases);
+      if (!hx)
+      {
+         TF_CHECK_OK(env->NewWritableFile(classFile.c_str(), &hx));
+         APPEND("// AutoGen APIn\n");
+         APPEND("package tf;\n\n");
+         APPEND(string("class ") + className.c_str() + "{\n");
+      }
+
+      APPEND("public static function " + op_info.op_name + "(?inNodeName:String\n");
+
+      const OpDef &op_def = op_info.op_def;
+      std::string indent = "\t\t\t,";
+      std::string bodyI = "\t";
+      std::string defaultArgs = "";
+      std::string addInputs = "";
+      std::string addAttrs = "";
+      std::string returnOutputs = "";
+
+
+      for (int i = 0; i < op_def.input_arg_size(); ++i)
+      {
+         const auto& arg(op_def.input_arg(i));
+
+         std::string inputSuffix = "";
+         string name = remapName(arg.name());
+         if (!arg.type_attr().empty())
+             APPEND( indent + name + ": tf.Output\n");
+         else if (ArgIsList(arg))
+         {
+             inputSuffix = "Array";
+             APPEND( indent + name + ": Array< tf.Output >\n");
+         }
+         else
+             APPEND( indent + name + ": tf.Output\n");
+
+         addInputs += bodyI + "ctx.addInput" + inputSuffix +  "(" + name + ");\n";
+      }
+
+      for (int i = 0; i < op_def.attr_size(); ++i)
+      {
+         const auto& attr(op_def.attr(i));
+         // Defines type restriction
+         if (attr.name().substr(0,1)=="T")
+            continue;
+
+         string name = remapName(attr.name());
+         if (  attr.has_default_value() )
+         {
+            if (canDefaultType(attr.type()))
+            {
+               APPEND( indent + name + ":" + ToHaxeType(attr.type()) );
+               APPEND(" = " + getHaxeValue(attr.type(),attr.default_value()) );
+            }
+            else
+            {
+               APPEND( indent + "?" + name + ":" + ToHaxeType(attr.type()) );
+               string defValue = getHaxeValue(attr.type(),attr.default_value());
+               if (defValue=="tf.Tensor")
+                  defValue = "ctx.get_" + name + "()";
+               defaultArgs += "\tif (" + name + "==null) " + name + " = " + defValue + ";\n";
+            }
+         }
+         else
+            APPEND( indent + name + ":" + ToHaxeType(attr.type()) );
+
+         APPEND("\n");
+
+         std::string attribSuffix = ToHaxeSuffix(attr.type());
+         addAttrs += bodyI + "ctx.addAttrib" + attribSuffix +  "(\"" + attr.name()+ "\"," +name + ");\n";
+      }
+
+
+      std::vector<string> output_types;
+      bool same = true;
+      // Process outputs
+      for (int i = 0; i < op_def.output_arg_size(); ++i) {
+        const auto& arg = op_def.output_arg(i);
+        bool is_list = ArgIsList(arg);
+        output_types.push_back( is_list ? "Array<tf.Output>" : "tf.Output");
+        for(int j=0;j<output_types.size()-1;j++)
+           if (output_types[j]!=output_types[output_types.size()-1])
+              same = false;
+      }
+
+      if (output_types.size()==0)
+      {
+         APPEND("\t\t): Void {\n");
+      }
+      else if (output_types.size()==1)
+      {
+         APPEND("\t\t): " + output_types[0] + " {\n");
+         returnOutputs = bodyI + "return ctx.endForOutput();\n";
+      }
+      else if (same)
+      {
+         APPEND("\t\t): Array<" + output_types[0] + "> {\n");
+         returnOutputs = bodyI + "var result=new Array<tf.Output>();\n" +
+                         bodyI + "ctx.endForOutputArray(result);\n" +
+                         bodyI + "return result;\n";
+      }
+      else
+      {
+         APPEND("\t\t): Array<Dynamic> {\n");
+         returnOutputs = bodyI + "var result=new Array<Dynamic>();\n" +
+                         bodyI + "ctx.endForOutputArray(result);\n" +
+                         bodyI + "return result;\n";
+      }
+
+      APPEND(bodyI + string("var ctx = tf.Context.current;\n"));
+      APPEND(defaultArgs);
+      APPEND(bodyI + string("ctx.beginOp(\"") + name + "\",inNodeName);\n");
+      APPEND(addInputs);
+      APPEND(addAttrs);
+      APPEND(returnOutputs);
+      APPEND("}\n\n");
+      }
+
+   if (hx)
+   {
+      TF_CHECK_OK(hx->Append("}\n"));
+      TF_CHECK_OK(hx->Close());
+   }
 }
 
-DEFINE_PRIME1v(genHxcppCode);
+DEFINE_PRIME3v(genHxcppCode);
+
+void genCppCode(HxString cFilename, HxString hFilename)
+{
+   int argc = 1;
+   char app[] = "app";
+   char* argv[] = {app};
+   tensorflow::port::InitMain(app, &argc, (char ***)&argv);
+
+   OpList ops;
+   OpRegistry::Global()->Export(false, &ops);
+   std::string overrides = "../modules/tensorflow/tensorflow/cc/ops/op_gen_overrides.pbtxt";
+   WriteCCOps(ops, hFilename.c_str(), cFilename.c_str(), overrides);
+}
+
+DEFINE_PRIME2v(genCppCode);
 
 
 }  // namespace tensorflow
