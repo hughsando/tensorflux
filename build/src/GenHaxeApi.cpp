@@ -1035,8 +1035,25 @@ string getHaxeValue(const string& type, const AttrValue& value) {
 string remapName(const string &inName)
 {
    if (inName=="var")
-      return "_" + inName;
+      return "variable";
+   if (inName=="cast")
+      return "typeCast";
+   if (inName=="switch")
+      return "switchVal";
    return inName;
+}
+
+string toHaxeCase(const string inValue)
+{
+   char chars[2];
+   chars[0] = inValue[0];
+   if (chars[0]>='A' && chars[0]<='Z')
+   {
+      chars[0] += 'a' - 'A';
+      chars[1] = 0;
+      return chars + inValue.substr(1, inValue.size()-1);
+   }
+   return inValue;
 }
 
 
@@ -1104,7 +1121,7 @@ void genHxcppCode(HxString className, HxString classFile, HxString inFilter)
          APPEND(string("class ") + className.c_str() + "{\n");
       }
 
-      APPEND("public static function " + op_info.op_name + "(?inNodeName:String\n");
+      APPEND("public static function " + remapName(toHaxeCase(op_info.op_name)) + "(?inNodeName:String\n");
 
       const OpDef &op_def = op_info.op_def;
       std::string indent = "\t\t\t,";

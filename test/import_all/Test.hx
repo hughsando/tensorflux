@@ -22,6 +22,13 @@ import tf.Const;
 
 class Test
 {
+   #if cpp
+   public static function __init__()
+   {
+      cpp.Lib.pushDllSearchPath( "../../ndll/" + cpp.Lib.getBinDirectory() );
+   }
+   #end
+
    public static function main()
    {
       // Basic constant operations
@@ -29,6 +36,8 @@ class Test
       // of the Constant op.
       var a = Const.int32(2);
       var b = Const.int32(3);
+      var sum = MathOps.add(a,b);
+
       //var hello = Tensor.fromString(value, type);
 /*
       var session = tf.Session.get();
