@@ -478,6 +478,7 @@
       <file name="tensorflow/core/kernels/batchtospace_op.cc" />
       <file name="tensorflow/core/framework/op_gen_lib.cc" />
       <file name="tensorflow/cc/framework/cc_op_gen.cc" />
+      <file name="tensorflow/cc/saved_model/loader.cc" />
 
    </files>
 
@@ -528,6 +529,8 @@
       </section>
 
       <file name="src/GenHaxeApi.cpp" />
+      <file name="src/Api.cpp" />
+      <file name="src/c_api.cc" />
    </files>
 
    <target id="default" tool="linker" toolid="dll" output="tensorflow" >

@@ -80,6 +80,7 @@ class Build
          "tensorflow/core/example/example.pb.cc",
          "tensorflow/core/protobuf/rewriter_config.pb.cc",
          "tensorflow/core/framework/op_gen_overrides.pb.cc",
+         "tensorflow/core/protobuf/saved_model.pb.cc",
       ];
       FileSystem.createDirectory("gen");
 

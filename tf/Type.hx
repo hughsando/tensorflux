@@ -2,6 +2,7 @@ package tf;
 
 enum Type
 {
+   Unknown; // enumIndex = 0 to match TF_DataType enum
    Float32;
    Float64;
    Int32;
