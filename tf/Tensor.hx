@@ -25,6 +25,7 @@ abstract Tensor(Dynamic)
       return new Tensor( tfAllocate( GlobalType.enumIndex(type), dims, byteCount ) );
    }
 
+   @:from
    public static function int32(inVal:Int) : Tensor
    {
       return new Tensor( tfAllocateInt32(inVal) );

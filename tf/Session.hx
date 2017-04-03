@@ -35,6 +35,7 @@ abstract Session(Dynamic)
    {
       return run([request],feed_dict)[0];
    }
+
    public function runOutputs(fetches:Array<Output>, ?feedOutputs:Array<Output>, ?feedValues:Array<Tensor> /* TODO:opts,meta */) : Array<Tensor>
    {
       var oCount = feedOutputs==null ? -1 : feedOutputs.length;
