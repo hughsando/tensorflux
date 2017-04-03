@@ -4,6 +4,6 @@ build/lib
 build/obj
 ndll
 tf/*Ops.hx
-test/import_all/cpp
+test/smoke/cpp
 *.swp
 *.swo

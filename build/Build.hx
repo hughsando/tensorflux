@@ -3,7 +3,8 @@ import sys.FileSystem;
 class Build
 {
    static var haxelibExtra:Array<String> = [ ];
-   static var builds = ["libprotobuf", "protoc", "libpbcc", "proto_text", "libpb_text", "tensorflow", "haxegen" ];
+   static var builds = ["libprotobuf", "protoc", "libpbcc", "proto_text", "libpb_text",
+         "tensorflow", "haxegen", "test" ];
    static var toolExt = Sys.systemName()=="Windows" ? ".exe" : "";
    static var commandError = false;
 
@@ -192,6 +193,18 @@ class Build
    {
       command("haxelib", ["run","hxcpp","tensorflow.xml" ] );
    }
+
+   public static function testBuild()
+   {
+      var here = Sys.getCwd();
+      Sys.setCwd("../test/smoke");
+
+      command("haxe", ["compile.hxml" ] );
+      if (!commandError)
+         command('cpp/Test$toolExt', [] );
+      Sys.setCwd(here);
+   }
+
 
    static function deleteDirRecurse(dir:String)
    {
