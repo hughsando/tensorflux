@@ -11,14 +11,17 @@ import tf.LinalgOps;
 import tf.IoOps;
 import tf.ImageOps;
 import tf.FunctionalOps;
-import tf.DataFlowOps;
-import tf.CtcOps;
 import tf.ControlFlowOps;
 import tf.CandidateSamplingOps;
+// Not supported at the moment
+//import tf.DataFlowOps;
+//import tf.CtcOps;
+
 import tf.ArrayOps;
 import tf.ConstOps;
 import tf.Tensor;
 import tf.Const;
+import tf.Session;
 
 class Test
 {
@@ -34,9 +37,14 @@ class Test
       // Basic constant operations
       // The value returned by the constructor represents the output
       // of the Constant op.
-      var a = Const.int32(2);
-      var b = Const.int32(3);
-      var sum = MathOps.add(a,b);
+      var a = Const.int32(6);
+      var b = Const.int32(7);
+      var sum = MathOps.multiply(a,b);
+
+      Session.with(function(sess) {
+         var result = sess.runOutput(sum);
+         trace("The answer to life, the universe and everything is " + result);
+      });
 
       //var hello = Tensor.fromString(value, type);
 /*

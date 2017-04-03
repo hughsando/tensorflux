@@ -1187,10 +1187,12 @@ void genHxcppCode(HxString className, HxString classFile, HxString inFilter)
 
       std::vector<string> output_types;
       bool same = true;
+      bool isArray = false;
       // Process outputs
       for (int i = 0; i < op_def.output_arg_size(); ++i) {
         const auto& arg = op_def.output_arg(i);
         bool is_list = ArgIsList(arg);
+        isArray = is_list;
         output_types.push_back( is_list ? "Array<tf.Output>" : "tf.Output");
         for(int j=0;j<output_types.size()-1;j++)
            if (output_types[j]!=output_types[output_types.size()-1])
@@ -1204,21 +1206,17 @@ void genHxcppCode(HxString className, HxString classFile, HxString inFilter)
       else if (output_types.size()==1)
       {
          APPEND("\t\t): " + output_types[0] + " {\n");
-         returnOutputs = bodyI + "return ctx.endForOutput();\n";
+         returnOutputs = bodyI + (isArray ? "return ctx.endForOutputArray();\n" : "return ctx.endForOutput();\n");
       }
       else if (same)
       {
          APPEND("\t\t): Array<" + output_types[0] + "> {\n");
-         returnOutputs = bodyI + "var result=new Array<tf.Output>();\n" +
-                         bodyI + "ctx.endForOutputArray(result);\n" +
-                         bodyI + "return result;\n";
+         returnOutputs = bodyI + "return ctx.endForOutputArray();\n";
       }
       else
       {
          APPEND("\t\t): Array<Dynamic> {\n");
-         returnOutputs = bodyI + "var result=new Array<Dynamic>();\n" +
-                         bodyI + "ctx.endForOutputArray(result);\n" +
-                         bodyI + "return result;\n";
+         returnOutputs = bodyI + "return ctx.endForDynamicArray();\n";
       }
 
       APPEND(bodyI + string("var ctx = tf.Context.current;\n"));

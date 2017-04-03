@@ -19,6 +19,9 @@ limitations under the License.
 #include <stddef.h>
 #include <stdint.h>
 
+#include "tensorflow/core/protobuf/config.pb.h"
+#include <string>
+
 // --------------------------------------------------------------------------
 // C API for TensorFlow.
 //
@@ -223,6 +226,8 @@ extern TF_Tensor* TF_AllocateTensor(TF_DataType, const int64_t* dims,
 // Destroy a tensor.
 extern void TF_DeleteTensor(TF_Tensor*);
 
+extern void TF_TensorToString(TF_Tensor*, std::string &outString);
+
 // Return the type of a tensor element.
 extern TF_DataType TF_TensorType(const TF_Tensor*);
 
@@ -284,8 +289,7 @@ extern void TF_SetTarget(TF_SessionOptions* options, const char* target);
 // config should be a serialized tensorflow.ConfigProto proto.
 // If config was not parsed successfully as a ConfigProto, record the
 // error information in *status.
-extern void TF_SetConfig(TF_SessionOptions* options, const void* proto,
-                         size_t proto_len, TF_Status* status);
+extern void TF_SetConfig(TF_SessionOptions* options, const tensorflow::ConfigProto &inProto);
 
 // Destroy an options object.
 extern void TF_DeleteSessionOptions(TF_SessionOptions*);

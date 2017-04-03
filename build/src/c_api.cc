@@ -225,6 +225,9 @@ void TF_DeleteTensor(TF_Tensor* t) {
   delete t;
 }
 
+
+
+
 TF_DataType TF_TensorType(const TF_Tensor* t) { return t->dtype; }
 int TF_NumDims(const TF_Tensor* t) { return t->shape.dims(); }
 int64_t TF_Dim(const TF_Tensor* t, int dim_index) {
@@ -287,12 +290,18 @@ void TF_SetTarget(TF_SessionOptions* options, const char* target) {
   options->options.target = target;
 }
 
+void TF_SetConfig(TF_SessionOptions* options, const tensorflow::ConfigProto &inProto)
+{
+   options->options.config = inProto;
+}
+/*
 void TF_SetConfig(TF_SessionOptions* options, const void* proto,
                   size_t proto_len, TF_Status* status) {
   if (!options->options.config.ParseFromArray(proto, proto_len)) {
     status->status = InvalidArgument("Unparseable ConfigProto");
   }
 }
+*/
 // --------------------------------------------------------------------------
 TF_Buffer* TF_NewBuffer() { return new TF_Buffer{nullptr, 0, nullptr}; }
 
@@ -496,11 +505,30 @@ static TF_Tensor* EmptyTensor(TF_DataType dtype, const TensorShape& shape) {
                       [](void*, size_t, void*) {}, nullptr);
 }
 
+
+
+
 // Helpers for loading a TensorFlow plugin (a .so file).
 Status LoadLibrary(const char* library_filename, void** result,
                    const void** buf, size_t* len);
 
 }  // namespace tensorflow
+
+
+void TF_TensorToString(TF_Tensor *value, std::string &outString)
+{
+   if (value->dtype != TF_STRING)
+   {
+      auto t = tensorflow::TensorCApi::MakeTensor(value->dtype, value->shape, value->buffer);
+      outString = t.DebugString();
+   }
+   else
+   {
+      outString = "*strings*";
+   }
+}
+
+
 
 static void TF_Run_Setup(int noutputs, TF_Tensor** c_outputs,
                          TF_Status* status) {
