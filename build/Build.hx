@@ -191,6 +191,18 @@ class Build
 
    public static function tensorflowBuild()
    {
+      var cudaConfig = [
+      "#ifndef CUDA_CUDA_CONFIG_H_",
+      "#define CUDA_CUDA_CONFIG_H_",
+      "#define TF_CUDA_CAPABILITIES CudaVersion(\"3.0\"),CudaVersion(\"3.5\"),CudaVersion(\"5.2\")",
+      "#define TF_CUDA_VERSION \"64_80\"",
+      "#define TF_CUDNN_VERSION \"64_5\"",
+      "#define TF_CUDA_TOOLKIT_PATH \"${CUDA_TOOLKIT_ROOT_DIR}\"",
+      "#endif  // CUDA_CUDA_CONFIG_H_",
+      ];
+      FileSystem.createDirectory("gen");
+      FileSystem.createDirectory("gen/cuda");
+      sys.io.File.saveContent( "gen/cuda/cuda_config.h", cudaConfig.join("\n")  );
       command("haxelib", ["run","hxcpp","tensorflow.xml" ] );
    }
 

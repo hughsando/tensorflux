@@ -3,6 +3,25 @@
    <include name="${HXCPP}/toolchain/haxe-target.xml" />
 
    <!--<set name="GPU" value="1" />-->
+   <section if="GPU" >
+     <setup name="nvcc" />
+     <section if="windows_host" >
+       <!--
+       tf assumes in various places header files to be in cuda/include. On windows the cuda sdk
+        installs them under cuda/version/include and to avoid that we need to change tf we copy a
+        few files to cuda/include
+       -->
+       <mkdir name="gen/cuda/include" />
+       <copy from="${CUDA_SDK}/include/cuda.h" to="gen/cuda/include" />
+       <copy from="${CUDA_SDK}/include/cuComplex.h" to="gen/cuda/include" />
+       <copy from="${CUDA_SDK}/include/curand.h" to="gen/cuda/include" />
+       <copy from="${CUDA_SDK}/include/cublas_v2.h" to="gen/cuda/include" />
+       <copy from="${CUDA_SDK}/include/cufft.h" to="gen/cuda/include" />
+       <copy from="${CUDA_SDK}/include/cuda_runtime_api.h" to="gen/cuda/include" />
+       <!--<copy from="${CUDNN_HOME}/include/cudnn.h" to="gen/cuda/include" />-->
+        <nvccflag value="-Igen" />
+     </section>
+   </section>
 
    <files id="tensorflow" dir="../modules/tensorflow" >
       <compilerflag value="-I../modules/protobuf/src" />
@@ -537,26 +556,42 @@
 
    <files id="gpu"  dir="../modules/tensorflow" tags="nvcc" >
       <nvcc />
+      <section if="isMsvc" >
+         <compilerflag value="-DCOMPILER_MSVC" />
+         <compilerflag value="-D_WIN32_WINNT=0x0A00"/>
+         <compilerflag value="-DLANG_CXX11"/>
+         <compilerflag value='-D__VERSION__=\"MSVC\"'/>
+         <compilerflag value="-DWIN32"/>
+         <compilerflag value="-DOS_WIN"/>
+         <compilerflag value="-D_MBCS"/>
+         <compilerflag value="-DWIN32_LEAN_AND_MEAN"/>
+         <compilerflag value="-DNOGDI"/>
+         <compilerflag value="-DTENSORFLOW_USE_EIGEN_THREADPOOL"/>
+         <compilerflag value="-DEIGEN_HAS_C99_MATH"/>
+         <compilerflag value="-D_ITERATOR_DEBUG_LEVEL=0"/> 
+      </section>
+
       <compilerflag value="-I${CUDA}/include" />
       <compilerflag value="-Igen" />
       <compilerflag value="-DTF_COMPILE_LIBRARY" />
       <compilerflag value="-DGOOGLE_CUDA=1" />
       <compilerflag value="-DTF_EXTRA_CUDA_CAPABILITIES=3.0,3.5,5.2" />
-      <compilerflag value="-gencode" />
-      <compilerflag value='arch=compute_30,code="sm_30,compute_30"' />
+      <compilerflag name="-gencode" value='arch=compute_30,code="sm_30,compute_30"' />
+      <!--
+      <compilerflag name="-gencode" value='arch=compute_35,code="sm_35,compute_35"' />
+      <compilerflag name="-gencode" value='arch=compute_52,code="sm_35,compute_52"' />
+      -->
       <compilerflag value="-I../modules/tensorflow" />
+      <compilerflag value="-I../modules/eigen" />
+      <compilerflag value="-I../modules/protobuf/src" />
+      <compilerflag name="-x" value="cu" />
+      <compilerflag value="--expt-relaxed-constexpr" />
+      <compilerflag value="-ftz=true" />
 
 <!--
-      -gencode arch=compute_30,code=\"sm_30,compute_30\"
--gencode arch=compute_35,code=\"sm_35,compute_35\"
--gencode arch=compute_52,code=\"sm_52,compute_52\"
---include-path ${PROJECT_BINARY_DIR}/$\{build_configuration\};
---expt-relaxed-constexpr)
--ftz=true
-    set(CUDA_INCLUDE ${CUDA_TOOLKIT_TARGET_DIR} ${CUDA_TOOLKIT_TARGET_DIR}/extras/CUPTI/include)
-    include_directories(${CUDA_INCLUDE})
--DGOOGLE_CUDA=1
--DTF_EXTRA_CUDA_CAPABILITIES=3.0,3.5,5.2)
+  include-path ${PROJECT_BINARY_DIR}/$\{build_configuration\};
+  set(CUDA_INCLUDE ${CUDA_TOOLKIT_TARGET_DIR} ${CUDA_TOOLKIT_TARGET_DIR}/extras/CUPTI/include)
+  include_directories(${CUDA_INCLUDE})
 -->
 
       <file name="tensorflow/core/kernels/xent_op_gpu.cu.cc" />
