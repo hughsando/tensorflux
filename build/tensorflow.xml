@@ -2,6 +2,27 @@
    <set name="static_link" value="1" />
    <include name="${HXCPP}/toolchain/haxe-target.xml" />
 
+   <!--<set name="GPU" value="1" />-->
+   <section if="GPU" >
+     <setup name="nvcc" />
+     <section if="windows_host" >
+       <!--
+       tf assumes in various places header files to be in cuda/include. On windows the cuda sdk
+        installs them under cuda/version/include and to avoid that we need to change tf we copy a
+        few files to cuda/include
+       -->
+       <mkdir name="gen/cuda/include" />
+       <copy from="${CUDA_SDK}/include/cuda.h" to="gen/cuda/include" />
+       <copy from="${CUDA_SDK}/include/cuComplex.h" to="gen/cuda/include" />
+       <copy from="${CUDA_SDK}/include/curand.h" to="gen/cuda/include" />
+       <copy from="${CUDA_SDK}/include/cublas_v2.h" to="gen/cuda/include" />
+       <copy from="${CUDA_SDK}/include/cufft.h" to="gen/cuda/include" />
+       <copy from="${CUDA_SDK}/include/cuda_runtime_api.h" to="gen/cuda/include" />
+       <!--<copy from="${CUDNN_HOME}/include/cudnn.h" to="gen/cuda/include" />-->
+        <nvccflag value="-Igen" />
+     </section>
+   </section>
+
    <files id="tensorflow" dir="../modules/tensorflow" >
       <compilerflag value="-I../modules/protobuf/src" />
       <compilerflag value="-I../modules/tensorflow" />
@@ -533,9 +554,185 @@
       <file name="src/c_api.cc" />
    </files>
 
+   <files id="gpu"  dir="../modules/tensorflow" tags="nvcc" >
+      <nvcc />
+      <section if="isMsvc" >
+         <compilerflag value="-DCOMPILER_MSVC" />
+         <compilerflag value="-D_WIN32_WINNT=0x0A00"/>
+         <compilerflag value="-DLANG_CXX11"/>
+         <compilerflag value='-D__VERSION__=\"MSVC\"'/>
+         <compilerflag value="-DWIN32"/>
+         <compilerflag value="-DOS_WIN"/>
+         <compilerflag value="-D_MBCS"/>
+         <compilerflag value="-DWIN32_LEAN_AND_MEAN"/>
+         <compilerflag value="-DNOGDI"/>
+         <compilerflag value="-DTENSORFLOW_USE_EIGEN_THREADPOOL"/>
+         <compilerflag value="-DEIGEN_HAS_C99_MATH"/>
+         <compilerflag value="-D_ITERATOR_DEBUG_LEVEL=0"/> 
+      </section>
+
+      <compilerflag value="-I${CUDA}/include" />
+      <compilerflag value="-Igen" />
+      <compilerflag value="-DTF_COMPILE_LIBRARY" />
+      <compilerflag value="-DGOOGLE_CUDA=1" />
+      <compilerflag value="-DTF_EXTRA_CUDA_CAPABILITIES=3.0,3.5,5.2" />
+      <compilerflag name="-gencode" value='arch=compute_30,code="sm_30,compute_30"' />
+      <!--
+      <compilerflag name="-gencode" value='arch=compute_35,code="sm_35,compute_35"' />
+      <compilerflag name="-gencode" value='arch=compute_52,code="sm_35,compute_52"' />
+      -->
+      <compilerflag value="-I../modules/tensorflow" />
+      <compilerflag value="-I../modules/eigen" />
+      <compilerflag value="-I../modules/protobuf/src" />
+      <compilerflag name="-x" value="cu" />
+      <compilerflag value="--expt-relaxed-constexpr" />
+      <compilerflag value="-ftz=true" />
+
+<!--
+  include-path ${PROJECT_BINARY_DIR}/$\{build_configuration\};
+  set(CUDA_INCLUDE ${CUDA_TOOLKIT_TARGET_DIR} ${CUDA_TOOLKIT_TARGET_DIR}/extras/CUPTI/include)
+  include_directories(${CUDA_INCLUDE})
+-->
+
+      <file name="tensorflow/core/kernels/xent_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/transpose_functor_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/training_ops_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/tile_ops_gpu_impl_8.cu.cc" />
+      <file name="tensorflow/core/kernels/tile_ops_gpu_impl_6.cu.cc" />
+      <file name="tensorflow/core/kernels/tile_ops_gpu_impl_7.cu.cc" />
+      <file name="tensorflow/core/kernels/tile_ops_gpu_impl_5.cu.cc" />
+      <file name="tensorflow/core/kernels/tile_ops_gpu_impl_4.cu.cc" />
+      <file name="tensorflow/core/kernels/tile_ops_gpu_impl_3.cu.cc" />
+      <file name="tensorflow/core/kernels/tile_ops_gpu_impl_2.cu.cc" />
+      <file name="tensorflow/core/kernels/tile_ops_gpu_impl_1.cu.cc" />
+      <file name="tensorflow/core/kernels/strided_slice_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/split_lib_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/sparse_xent_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/sparse_tensor_dense_matmul_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/spacetodepth_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/spacetobatch_functor_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/softsign_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/softplus_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/softmax_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/slice_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/segment_reduction_ops_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/scatter_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/scatter_nd_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/scatter_functor_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/scan_ops_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/reverse_sequence_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/reverse_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/resize_nearest_neighbor_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/resize_bilinear_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/relu_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/reduction_ops_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/random_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/quantize_and_dequantize_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/pooling_ops_3d_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/parameterized_truncated_normal_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/pad_op_gpu.cu.cc" />
+      <!--<file name="tensorflow/core/kernels/one_hot_op_gpu.cu.cc" />-->
+      <file name="tensorflow/core/kernels/multinomial_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/mirror_pad_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/maxpooling_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/matrix_set_diag_op_gpu.cu.cc" />
+      <!-- <file name="tensorflow/core/kernels/matrix_diag_op_gpu.cu.cc" /> -->
+      <file name="tensorflow/core/kernels/matrix_band_part_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/l2loss_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/inplace_ops_functor_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/gather_nd_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/gather_functor_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/fused_batch_norm_op.cu.cc" />
+      <file name="tensorflow/core/kernels/fake_quant_ops_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/extract_image_patches_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/dilation_ops_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/depthwise_conv_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/depthtospace_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/dense_update_ops_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_zeta.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_tanh.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_tan.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_sub.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_squared_difference.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_square.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_sqrt.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_sin.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_sign.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_sigmoid.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_select.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_rsqrt.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_round.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_rint.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_real.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_pow.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_not_equal_to.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_neg.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_mul.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_minimum.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_mod.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_maximum.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_logical_or.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_logical_not.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_logical_and.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_log1p.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_log.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_lgamma.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_less_equal.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_less.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_isnan.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_isinf.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_isfinite.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_inverse.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_imag.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_igammas.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_greater_equal.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_greater.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_floor_mod.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_floor_div.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_floor.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_expm1.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_exp.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_erfc.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_erf.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_equal_to.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_div.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_digamma.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_cos.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_conj.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_complex.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_ceil.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_atan.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_asin.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_add.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_acos.cu.cc" />
+      <file name="tensorflow/core/kernels/cwise_op_gpu_abs.cu.cc" />
+      <file name="tensorflow/core/kernels/cross_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/crop_and_resize_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/conv_ops_gpu_3.cu.cc" />
+      <file name="tensorflow/core/kernels/conv_ops_gpu_2.cu.cc" />
+      <file name="tensorflow/core/kernels/constant_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/concat_lib_gpu_impl.cu.cc" />
+      <file name="tensorflow/core/kernels/colorspace_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/check_numerics_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/cast_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/bias_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/betainc_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/batch_norm_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/avgpooling_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/argmax_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/aggregate_ops_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/adjust_hue_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/adjust_contrast_op_gpu.cu.cc" />
+
+      <file name="tensorflow/core/platform/cuda_libdevice_path.cc" />
+      <file name="tensorflow/core/platform/default/cuda_libdevice_path.cc" />
+   </files>
+
+
    <target id="default" tool="linker" toolid="dll" output="tensorflow" >
       <files id="tensorflow" />
       <files id="hxcpp" />
+      <files id="gpu" if="GPU" />
       <outdir name="../ndll/${BINDIR}" />
       <ext value=".ndll" />
       <!--<files id="zlib" />-->
