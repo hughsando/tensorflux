@@ -4,7 +4,7 @@
 
    <section if="GPU" >
      <setup name="nvcc" />
-     <!--<nvcclinkflag value="-arch=compute_30" />-->
+     <nvcclinkflag value="-arch=compute_30" />
      <section if="windows_host" >
        <!--
        tf assumes in various places header files to be in cuda/include. On windows the cuda sdk
@@ -518,6 +518,31 @@
          <file name="tensorflow/stream_executor/cuda/cuda_diagnostics.cc" />
          <file name="tensorflow/stream_executor/cuda/cuda_blas.cc" />
          <file name="tensorflow/stream_executor/cuda/cuda_activation.cc" />
+         <file name="tensorflow/stream_executor/timer.cc" />
+         <file name="tensorflow/stream_executor/temporary_memory_manager.cc" />
+         <file name="tensorflow/stream_executor/temporary_device_memory.cc" />
+         <file name="tensorflow/stream_executor/stream_executor_pimpl.cc" />
+         <file name="tensorflow/stream_executor/stream_executor_internal.cc" />
+         <file name="tensorflow/stream_executor/stream.cc" />
+         <file name="tensorflow/stream_executor/scratch_allocator.cc" />
+         <file name="tensorflow/stream_executor/rng.cc" />
+         <file name="tensorflow/stream_executor/plugin_registry.cc" />
+         <file name="tensorflow/stream_executor/plugin.cc" />
+         <file name="tensorflow/stream_executor/platform.cc" />
+         <file name="tensorflow/stream_executor/multi_platform_manager.cc" />
+         <file name="tensorflow/stream_executor/machine_manager.cc" />
+         <file name="tensorflow/stream_executor/kernel_spec.cc" />
+         <file name="tensorflow/stream_executor/kernel.cc" />
+         <file name="tensorflow/stream_executor/executor_cache.cc" />
+         <file name="tensorflow/stream_executor/event.cc" />
+         <file name="tensorflow/stream_executor/dso_loader.cc" />
+         <file name="tensorflow/stream_executor/dnn.cc" />
+         <file name="tensorflow/stream_executor/device_description.cc" />
+         <file name="tensorflow/stream_executor/blas.cc" />
+         <file name="tensorflow/stream_executor/lib/process_state.cc" />
+         <file name="tensorflow/stream_executor/lib/path.cc" />
+         <file name="tensorflow/stream_executor/lib/numbers.cc" />
+         <file name="tensorflow/stream_executor/lib/demangle.cc" />
       </section>
 
    </files>
@@ -596,7 +621,7 @@
       <compilerflag value="-DTF_COMPILE_LIBRARY" />
       <compilerflag value="-DGOOGLE_CUDA=1" />
       <compilerflag value="-DTF_EXTRA_CUDA_CAPABILITIES=3.0,3.5,5.2" />
-      <compilerflag name="-gencode" value='arch=compute_30,code=sm_30' />
+      <compilerflag name="-gencode" value='arch=compute_30,code="sm_30,compute_30"' />
       <!--
       <compilerflag name="-gencode" value='arch=compute_35,code=sm_35' />
          <compilerflag name="-gencode" value='arch=compute_52,code=sm_35' />
@@ -760,7 +785,12 @@
       <lib name="lib/libprotobuf${LIBEXTRA}.a"  />
       <lib name="lib/libpbcc${LIBEXTRA}.a"  />
       <lib name="lib/libpb_text${LIBEXTRA}.a"  />
+      <lib name="${CUDA_SDK}/lib/x64/cuda.lib" if="GPU" />
       <lib name="${CUDA_SDK}/lib/x64/cudart.lib" if="GPU" />
+      <lib name="${CUDA_SDK}/lib/x64/cublas.lib" if="GPU" />
+      <lib name="${CUDA_SDK}/lib/x64/cufft.lib" if="GPU" />
+      <lib name="${CUDA_SDK}/lib/x64/curand.lib" if="GPU" />
+      <lib name="${CUDA_SDK}/cudnn/cuda/lib/x64/cudnn.lib" if="GPU" />
    </target>
 
 </xml>
