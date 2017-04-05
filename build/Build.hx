@@ -246,7 +246,20 @@ class Build
    {
       haxelibExtra.push("-DHXCPP_M64");
 
-      var option = Sys.args()[0];
+      var option:String = null;
+      for(arg in Sys.args())
+      {
+         if (arg.substr(0,1)=='-')
+            haxelibExtra.push(arg);
+         else if (option==null)
+            option = arg;
+         else
+         {
+            option = null;
+            break;
+         }
+      }
+
       if (option=="all")
       {
          for(build in builds)
@@ -268,7 +281,7 @@ class Build
       {
          if (builds.indexOf(option)<0)
          {
-            Sys.println("Usage: Build target");
+            Sys.println("Usage: haxe --run Build.hx target [-arg1 -arg2 ...]");
             Sys.println(' target = one of :$builds or "all" or "clean"');
             Sys.exit(-1);
          }

@@ -2,7 +2,6 @@
    <set name="static_link" value="1" />
    <include name="${HXCPP}/toolchain/haxe-target.xml" />
 
-   <!--<set name="GPU" value="1" />-->
    <section if="GPU" >
      <setup name="nvcc" />
      <section if="windows_host" >
@@ -569,6 +568,7 @@
          <compilerflag value="-DTENSORFLOW_USE_EIGEN_THREADPOOL"/>
          <compilerflag value="-DEIGEN_HAS_C99_MATH"/>
          <compilerflag value="-D_ITERATOR_DEBUG_LEVEL=0"/> 
+         <compilerflag name="-Xcompiler" value="/wd4503"/>
       </section>
 
       <compilerflag value="-I${CUDA}/include" />
@@ -608,7 +608,8 @@
       <file name="tensorflow/core/kernels/strided_slice_op_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/split_lib_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/sparse_xent_op_gpu.cu.cc" />
-      <file name="tensorflow/core/kernels/sparse_tensor_dense_matmul_op_gpu.cu.cc" />
+      <!--  error: identifier "_FNan" is undefined - 2015 update 1 maybe? -->
+      <!--<file name="tensorflow/core/kernels/sparse_tensor_dense_matmul_op_gpu.cu.cc" />-->
       <file name="tensorflow/core/kernels/spacetodepth_op_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/spacetobatch_functor_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/softsign_op_gpu.cu.cc" />
