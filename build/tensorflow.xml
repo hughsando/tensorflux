@@ -4,6 +4,7 @@
 
    <section if="GPU" >
      <setup name="nvcc" />
+     <!--<nvcclinkflag value="-arch=compute_30" />-->
      <section if="windows_host" >
        <!--
        tf assumes in various places header files to be in cuda/include. On windows the cuda sdk
@@ -19,6 +20,7 @@
        <copy from="${CUDA_SDK}/include/cuda_runtime_api.h" to="gen/cuda/include" />
        <!--<copy from="${CUDNN_HOME}/include/cudnn.h" to="gen/cuda/include" />-->
         <nvccflag value="-Igen" />
+
      </section>
    </section>
 
@@ -28,6 +30,8 @@
       <compilerflag value="-I../modules/eigen" />
       <compilerflag value="-I../modules/zlib" />
       <compilerflag value="-Igen" />
+      <compilerflag value="-I${CUDA_SDK}/include" if="GPU"/>
+      <compilerflag value="-I${CUDA_SDK}/cudnn" if="GPU"/>
       <compilerflag value="-DPLATFORM_WINDOWS" if="windows" />
       <compilerflag value="-DNOMINMAX" if="windows" />
       <compilerflag value="-DTF_COMPILE_LIBRARY" />
@@ -500,6 +504,22 @@
       <file name="tensorflow/cc/framework/cc_op_gen.cc" />
       <file name="tensorflow/cc/saved_model/loader.cc" />
 
+      <section if="GPU" >
+         <file name="tensorflow/stream_executor/cuda/cuda_timer.cc" />
+         <file name="tensorflow/stream_executor/cuda/cuda_stream.cc" />
+         <file name="tensorflow/stream_executor/cuda/cuda_rng.cc" />
+         <file name="tensorflow/stream_executor/cuda/cuda_platform_id.cc" />
+         <file name="tensorflow/stream_executor/cuda/cuda_platform.cc" />
+         <file name="tensorflow/stream_executor/cuda/cuda_gpu_executor.cc" />
+         <file name="tensorflow/stream_executor/cuda/cuda_fft.cc" />
+         <file name="tensorflow/stream_executor/cuda/cuda_event.cc" />
+         <file name="tensorflow/stream_executor/cuda/cuda_driver.cc" />
+         <file name="tensorflow/stream_executor/cuda/cuda_dnn.cc" />
+         <file name="tensorflow/stream_executor/cuda/cuda_diagnostics.cc" />
+         <file name="tensorflow/stream_executor/cuda/cuda_blas.cc" />
+         <file name="tensorflow/stream_executor/cuda/cuda_activation.cc" />
+      </section>
+
    </files>
 
 
@@ -576,10 +596,10 @@
       <compilerflag value="-DTF_COMPILE_LIBRARY" />
       <compilerflag value="-DGOOGLE_CUDA=1" />
       <compilerflag value="-DTF_EXTRA_CUDA_CAPABILITIES=3.0,3.5,5.2" />
-      <compilerflag name="-gencode" value='arch=compute_30,code="sm_30,compute_30"' />
+      <compilerflag name="-gencode" value='arch=compute_30,code=sm_30' />
       <!--
-      <compilerflag name="-gencode" value='arch=compute_35,code="sm_35,compute_35"' />
-      <compilerflag name="-gencode" value='arch=compute_52,code="sm_35,compute_52"' />
+      <compilerflag name="-gencode" value='arch=compute_35,code=sm_35' />
+         <compilerflag name="-gencode" value='arch=compute_52,code=sm_35' />
       -->
       <compilerflag value="-I../modules/tensorflow" />
       <compilerflag value="-I../modules/eigen" />
@@ -609,7 +629,7 @@
       <file name="tensorflow/core/kernels/split_lib_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/sparse_xent_op_gpu.cu.cc" />
       <!--  error: identifier "_FNan" is undefined - 2015 update 1 maybe? -->
-      <!--<file name="tensorflow/core/kernels/sparse_tensor_dense_matmul_op_gpu.cu.cc" />-->
+      <file name="tensorflow/core/kernels/sparse_tensor_dense_matmul_op_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/spacetodepth_op_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/spacetobatch_functor_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/softsign_op_gpu.cu.cc" />
@@ -740,6 +760,7 @@
       <lib name="lib/libprotobuf${LIBEXTRA}.a"  />
       <lib name="lib/libpbcc${LIBEXTRA}.a"  />
       <lib name="lib/libpb_text${LIBEXTRA}.a"  />
+      <lib name="${CUDA_SDK}/lib/x64/cudart.lib" if="GPU" />
    </target>
 
 </xml>
