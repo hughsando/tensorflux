@@ -103,13 +103,194 @@ DEFINE_PRIME3(tfAllocate)
 value tfAllocateInt32(int inValue)
 {
    int64_t dim = 1;
-   TF_Tensor *tensor = TF_AllocateTensor(TF_INT32, &dim, 1, sizeof(int));
+   TF_Tensor *tensor = TF_AllocateTensor(TF_INT32, &dim, 0, sizeof(int));
    *(int *)TF_TensorData(tensor) = inValue;
    value result = alloc_abstract(tensorKind, tensor);
    val_gc(result, destroy_tensor);
    return result;
 }
 DEFINE_PRIME1(tfAllocateInt32)
+
+
+value tfAllocateFloat(double inValue)
+{
+   int64_t dim = 1;
+   TF_Tensor *tensor = TF_AllocateTensor(TF_FLOAT, &dim, 0, sizeof(int));
+   *(float *)TF_TensorData(tensor) = (float)inValue;
+   value result = alloc_abstract(tensorKind, tensor);
+   val_gc(result, destroy_tensor);
+   return result;
+}
+DEFINE_PRIME1(tfAllocateFloat)
+
+
+template<typename T>
+value tfAllocateArray(value inData, value inShape,TF_DataType inType)
+{
+   int64_t n = 0;
+   bool isArray = true;
+   if (!val_is_null(inData))
+   {
+      n = val_array_size(inData);
+      if (n==0 && val_is_float(inData))
+      {
+         n = 1;
+         isArray = false;
+      }
+   }
+   std::vector<int64_t> dimVals;
+   // default to scalar
+   int dimCount = 0;
+   if (val_is_null(inShape))
+   {
+      // 1-D array from data
+      if (!isArray)
+      {
+         dimCount = 1;
+         dimVals.push_back(n);
+      }
+   }
+   else
+   {
+      dimCount = val_array_size(inShape);
+      for(int i=0;i<dimCount;i++)
+         dimVals.push_back( val_int( val_array_i(inShape,i) ) );
+   }
+
+   size_t elements = 1;
+   if (dimCount==0)
+   {
+      dimVals.push_back(0);
+   }
+   else
+   {
+      int missingDim = -1;
+      for(int i=0;i<dimCount;i++)
+      {
+         if (dimVals[i]<=0)
+         {
+            if (missingDim>=0)
+               val_throw(alloc_string("Too many unspecified dimensions"));
+            missingDim = i;
+         }
+         else
+         {
+            elements *= dimVals[i];
+         }
+      }
+      if (missingDim<0)
+      {
+         size_t val = (n+elements-1) / elements;
+         dimVals[missingDim] = val;
+         elements *= val;
+      }
+   }
+
+
+   TF_Tensor *tensor = TF_AllocateTensor(inType, &dimVals[0], dimCount, elements*sizeof(T));
+   T *data = (T *)TF_TensorData(tensor);
+   if (n>elements)
+      n = elements;
+   if (n<1)
+   {
+      // huh?
+   }
+   else if (isArray)
+   {
+      float *f=0;
+      double *d=0;
+      bool *b=0;
+      int *I=0;
+      value *v=0;
+
+      if ( (f=val_array_float(inData)))
+      {
+         if (inType==TF_FLOAT)
+            memcpy(data, f, sizeof(float)*n );
+         else
+            for(int i=0;i<n;i++)
+               data[i] = f[i];
+      }
+      else if ( (d=val_array_double(inData)) )
+      {
+         for(int i=0;i<n;i++)
+            data[i] = d[i];
+      }
+      else if ( (I=val_array_int(inData)) )
+      {
+         if (inType==TF_INT32)
+            memcpy(data, I, sizeof(int)*n );
+         else
+            for(int i=0;i<n;i++)
+               data[i] = I[i];
+      }
+      else if ( (b=val_array_bool(inData)) )
+      {
+         for(int i=0;i<n;i++)
+            data[i] = b[i];
+      }
+      else if ( (v=val_array_value(inData)) )
+      {
+         if (inType==TF_FLOAT)
+            for(int i=0;i<n;i++)
+               data[i] = val_float(v[i]);
+         else
+            for(int i=0;i<n;i++)
+               data[i] = val_int(v[i]);
+      }
+      else
+      {
+         if (inType==TF_FLOAT)
+            for(int i=0;i<n;i++)
+               data[i] = val_float(val_array_i(inData,i));
+         else
+            for(int i=0;i<n;i++)
+               data[i] = val_int(val_array_i(inData,i));
+      }
+
+      if (n<elements)
+         memset(data + n, 0, (elements-n)*sizeof(T));
+   }
+   else
+   {
+      if (inType==TF_FLOAT)
+         *data = (T)val_float(inData);
+      else
+         *data = (T)val_int(inData);
+   }
+
+   value result = alloc_abstract(tensorKind, tensor);
+   val_gc(result, destroy_tensor);
+   return result;
+}
+
+value tfAllocateFloats(value inData, value inShape)
+{
+   return tfAllocateArray<float>(inData, inShape, TF_FLOAT);
+}
+DEFINE_PRIME2(tfAllocateFloats)
+
+
+value tfAllocateInts(value inData, value inShape)
+{
+   return tfAllocateArray<int>(inData, inShape, TF_INT32);
+}
+DEFINE_PRIME2(tfAllocateInts)
+
+
+value tfAllocateInt64s(value inData, value inShape)
+{
+   return tfAllocateArray<int64_t>(inData, inShape, TF_INT64);
+}
+DEFINE_PRIME2(tfAllocateInt64s)
+
+
+value tfAllocateBytes(value inData, value inShape)
+{
+   return tfAllocateArray<int64_t>(inData, inShape, TF_UINT8);
+}
+DEFINE_PRIME2(tfAllocateBytes)
+
 
 HxString tfToString(value inTensor)
 {
@@ -446,10 +627,13 @@ value sesCreate(value inContext, value inConfig, HxString target)
       tensorflow::ConfigProto config;
       value cpuCount = val_field(inConfig, val_id("cpuCount"));
       if (!val_is_null(cpuCount))
-         config.mutable_device_count()->at("CPU") = val_int(cpuCount);
+         (*config.mutable_device_count())["CPU"] = val_int(cpuCount);
       value gpuCount = val_field(inConfig, val_id("gpuCount"));
       if (!val_is_null(gpuCount))
-         config.mutable_device_count()->at("GPU") = val_int(gpuCount);
+         (*config.mutable_device_count())["GPU"] = val_int(gpuCount);
+      value logPlace = val_field(inConfig, val_id("logDevicePlacement"));
+      if (!val_is_null(logPlace))
+         config.set_log_device_placement(val_bool(logPlace));
       TF_SetConfig(opts, config);
    }
 

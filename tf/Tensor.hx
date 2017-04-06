@@ -30,6 +30,36 @@ abstract Tensor(Dynamic)
    {
       return new Tensor( tfAllocateInt32(inVal) );
    }
+
+   @:from
+   public static function float(inVal:Float) : Tensor
+   {
+      return new Tensor( tfAllocateFloat(inVal) );
+   }
+
+
+   // Todo: restruct to Array<Float>, Array<Float32> etc.
+   public static function floats(value:Dynamic, ?shape:Array<Int>) : Tensor
+   {
+      return new Tensor( tfAllocateFloats(value,shape) );
+   }
+
+   public static function ints(value:Dynamic, ?shape:Array<Int>) : Tensor
+   {
+      return new Tensor( tfAllocateInts(value,shape) );
+   }
+
+   public static function int64s(value:Dynamic, ?shape:Array<Int>) : Tensor
+   {
+      return new Tensor( tfAllocateInt64s(value,shape) );
+   }
+
+
+   public static function bytes(value:Dynamic, ?shape:Array<Int>) : Tensor
+   {
+      return new Tensor( tfAllocateBytes(value,shape) );
+   }
+
    public function toString()
    {
       return tfToString(this);
@@ -45,6 +75,11 @@ abstract Tensor(Dynamic)
    #end
    public static var tfAllocate = Loader.load("tfAllocate","ioio");
    public static var tfAllocateInt32 = Loader.load("tfAllocateInt32","io");
+   public static var tfAllocateFloat = Loader.load("tfAllocateFloat","do");
+   public static var tfAllocateFloats = Loader.load("tfAllocateFloats","ooo");
+   public static var tfAllocateInts = Loader.load("tfAllocateInts","ooo");
+   public static var tfAllocateInt64s = Loader.load("tfAllocateInt64s","ooo");
+   public static var tfAllocateBytes = Loader.load("tfAllocateBytes","ooo");
    public static var tfToString = Loader.load("tfToString","os");
 
 }

@@ -39,11 +39,11 @@ class Test
       // Basic constant operations
       // The value returned by the constructor represents the output
       // of the Constant op.
-      var a = ArrayOps.placeholder(Int32);
-      var product = a * 7;
+      var a = ArrayOps.placeholder(Float32);
+      var product = a * Const.floats([7,7,7]);
 
       Session.with(function(sess) {
-         var result = sess.runOutputs([product],[a],[6])[0];
+         var result = sess.runOutputs([product],[a],[6.0])[0];
          //var result = sess.run([product],[a => 6])[0];
          trace("The answer to life, the universe and everything is " + result);
       });

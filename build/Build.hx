@@ -6,6 +6,8 @@ class Build
    static var builds = ["libprotobuf", "protoc", "libpbcc", "proto_text", "libpb_text",
          "tensorflow", "haxegen", "test" ];
    static var toolExt = Sys.systemName()=="Windows" ? ".exe" : "";
+   static var debugExt = "";
+   static var debugFlag = [];
    static var commandError = false;
 
    public static function command(exe:String, args:Array<String>)
@@ -211,9 +213,9 @@ class Build
       var here = Sys.getCwd();
       Sys.setCwd("../test/smoke");
 
-      command("haxe", ["compile.hxml" ] );
+      command("haxe", ["compile.hxml" ].concat(debugFlag) );
       if (!commandError)
-         command('cpp/Test$toolExt', [] );
+         command('cpp/Test$debugExt$toolExt', [] );
       Sys.setCwd(here);
    }
 
@@ -250,7 +252,15 @@ class Build
       for(arg in Sys.args())
       {
          if (arg.substr(0,1)=='-')
-            haxelibExtra.push(arg);
+         {
+            if (arg=="-debug")
+            {
+               debugFlag = ["-debug"];
+               debugExt = "-debug";
+            }
+            else
+               haxelibExtra.push(arg);
+         }
          else if (option==null)
             option = arg;
          else

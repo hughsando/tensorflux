@@ -3,22 +3,23 @@ package tf;
 typedef ConfigProto = {
    @:optional var cpuCount:Int;
    @:optional var gpuCount:Int;
+   @:optional var logDevicePlacement:Bool;
 }
 
 abstract Session(Dynamic)
 {
    public function new(?config:ConfigProto, ?target:String)
    {
-      this = sesCreate(Context.currentHandle,config, target);
+      this = sesCreate(Context.currentHandle, config, target);
    }
    inline public function close()
    {
       sesClose(this);
       this = null;
    }
-   public static function with(body:Session->Void)
+   public static function with(?config:ConfigProto, body:Session->Void)
    {
-      var session = new Session();
+      var session = new Session(config);
       try
       {
          body(session);

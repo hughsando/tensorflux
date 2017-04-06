@@ -654,7 +654,7 @@
       <file name="tensorflow/core/kernels/split_lib_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/sparse_xent_op_gpu.cu.cc" />
       <!--  error: identifier "_FNan" is undefined - 2015 update 1 maybe? -->
-      <file name="tensorflow/core/kernels/sparse_tensor_dense_matmul_op_gpu.cu.cc" />
+      <!-- <file name="tensorflow/core/kernels/sparse_tensor_dense_matmul_op_gpu.cu.cc" />-->
       <file name="tensorflow/core/kernels/spacetodepth_op_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/spacetobatch_functor_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/softsign_op_gpu.cu.cc" />
