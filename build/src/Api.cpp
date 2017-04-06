@@ -144,7 +144,7 @@ value tfAllocateArray(value inData, value inShape,TF_DataType inType)
    if (val_is_null(inShape))
    {
       // 1-D array from data
-      if (!isArray)
+      if (isArray)
       {
          dimCount = 1;
          dimVals.push_back(n);
@@ -178,7 +178,7 @@ value tfAllocateArray(value inData, value inShape,TF_DataType inType)
             elements *= dimVals[i];
          }
       }
-      if (missingDim<0)
+      if (missingDim>=0)
       {
          size_t val = (n+elements-1) / elements;
          dimVals[missingDim] = val;
@@ -186,11 +186,11 @@ value tfAllocateArray(value inData, value inShape,TF_DataType inType)
       }
    }
 
-
    TF_Tensor *tensor = TF_AllocateTensor(inType, &dimVals[0], dimCount, elements*sizeof(T));
    T *data = (T *)TF_TensorData(tensor);
    if (n>elements)
       n = elements;
+
    if (n<1)
    {
       // huh?
