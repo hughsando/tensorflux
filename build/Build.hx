@@ -249,14 +249,23 @@ class Build
       haxelibExtra.push("-DHXCPP_M64");
 
       var option:String = null;
-      for(arg in Sys.args())
+      var args = Sys.args();
+      var a = 0;
+      while(a<args.length)
       {
+         var arg = args[a];
          if (arg.substr(0,1)=='-')
          {
             if (arg=="-debug")
             {
                debugFlag = ["-debug"];
                debugExt = "-debug";
+            }
+            else if (arg=="-dirty")
+            {
+               haxelibExtra.push(arg);
+               a++;
+               haxelibExtra.push(args[a]);
             }
             else
                haxelibExtra.push(arg);
@@ -268,6 +277,7 @@ class Build
             option = null;
             break;
          }
+         a++;
       }
 
       if (option=="all")

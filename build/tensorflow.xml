@@ -3,8 +3,8 @@
    <include name="${HXCPP}/toolchain/haxe-target.xml" />
 
    <section if="GPU" >
-     <setup name="nvcc" />
-     <nvcclinkflag value="-arch=compute_30" />
+     <nvcclinkflag value='-arch=sm_30' />
+     <setup name="nvcc" unless="hxcpp_nvcpp_setup" />
      <section if="windows_host" >
        <!--
        tf assumes in various places header files to be in cuda/include. On windows the cuda sdk
@@ -30,11 +30,19 @@
       <compilerflag value="-I../modules/eigen" />
       <compilerflag value="-I../modules/zlib" />
       <compilerflag value="-Igen" />
-      <compilerflag value="-I${CUDA_SDK}/include" if="GPU"/>
-      <compilerflag value="-I${CUDA_SDK}/cudnn" if="GPU"/>
+
+      <section if="GPU" >
+         <compilerflag value="-I${CUDA_SDK}/include" />
+         <compilerflag value="-I${CUDA_SDK}/cudnn" />
+         <compilerflag value="-I${CUDA_SDK}" />
+         <compilerflag value="-I${CUDA_SDK}/extras/cupti/include" />
+         <compilerflag value="-DGOOGLE_CUDA=1" />
+         <objprefix value="gpu_" />
+      </section>
       <compilerflag value="-DPLATFORM_WINDOWS" if="windows" />
       <compilerflag value="-DNOMINMAX" if="windows" />
       <compilerflag value="-DTF_COMPILE_LIBRARY" />
+      <compilerflag value="-DEIGEN_AVOID_STL_ARRAY" />
       <section if="isMsvc" >
          <compilerflag value="-DCOMPILER_MSVC" />
          <compilerflag value="-D_WIN32_WINNT=0x0A00"/>
@@ -272,7 +280,6 @@
       <file name="tensorflow/core/util/util.cc" />
       <file name="tensorflow/core/util/work_sharder.cc" />
       <file name="tensorflow/core/util/memmapped_file_system.cc" />
-      <file name="tensorflow/core/common_runtime/gpu/gpu_tracer.cc" />
       <file name="tensorflow/core/kernels/xent_op.cc" />
       <file name="tensorflow/core/kernels/where_op.cc" />
       <file name="tensorflow/core/kernels/variable_ops.cc" />
@@ -356,7 +363,7 @@
       <file name="tensorflow/core/kernels/pad_op.cc" />
       <file name="tensorflow/core/kernels/pack_op.cc" />
       <file name="tensorflow/core/kernels/ops_util.cc" />
-      <file name="tensorflow/core/kernels/one_hot_op.cc" />
+      <!-- TODO <file name="tensorflow/core/kernels/one_hot_op.cc" /> -->
       <file name="tensorflow/core/kernels/non_max_suppression_op.cc" />
       <file name="tensorflow/core/kernels/no_op.cc" />
       <file name="tensorflow/core/kernels/mirror_pad_op.cc" />
@@ -505,6 +512,19 @@
       <file name="tensorflow/cc/saved_model/loader.cc" />
 
       <section if="GPU" >
+         <file name="tensorflow/core/common_runtime/gpu/process_state.cc" />
+         <file name="tensorflow/core/common_runtime/gpu/pool_allocator.cc" />
+         <file name="tensorflow/core/common_runtime/gpu/gpu_util_platform_specific.cc" />
+         <file name="tensorflow/core/common_runtime/gpu/gpu_util.cc" />
+         <file name="tensorflow/core/common_runtime/gpu/gpu_tracer.cc" />
+         <file name="tensorflow/core/common_runtime/gpu/gpu_stream_util.cc" />
+         <file name="tensorflow/core/common_runtime/gpu/gpu_init.cc" />
+         <file name="tensorflow/core/common_runtime/gpu/gpu_device.cc" />
+         <file name="tensorflow/core/common_runtime/gpu/gpu_device_factory.cc" />
+         <file name="tensorflow/core/common_runtime/gpu/gpu_event_mgr.cc" />
+         <file name="tensorflow/core/common_runtime/gpu/gpu_debug_allocator.cc" />
+         <file name="tensorflow/core/common_runtime/gpu/gpu_bfc_allocator.cc" />
+
          <file name="tensorflow/stream_executor/cuda/cuda_timer.cc" />
          <file name="tensorflow/stream_executor/cuda/cuda_stream.cc" />
          <file name="tensorflow/stream_executor/cuda/cuda_rng.cc" />
@@ -598,6 +618,7 @@
       <file name="src/c_api.cc" />
    </files>
 
+   <!--<files id="gpu"  dir="../modules/tensorflow" tags="nvcc" >-->
    <files id="gpu"  dir="../modules/tensorflow" tags="nvcc" >
       <nvcc />
       <section if="isMsvc" >
@@ -616,12 +637,29 @@
          <compilerflag name="-Xcompiler" value="/wd4503"/>
       </section>
 
+
+
       <compilerflag value="-I${CUDA}/include" />
       <compilerflag value="-Igen" />
+
       <compilerflag value="-DTF_COMPILE_LIBRARY" />
+      <compilerflag value="-DEIGEN_AVOID_STL_ARRAY" />
+      <compilerflag value="-D__CUDACC__" />
       <compilerflag value="-DGOOGLE_CUDA=1" />
+      <compilerflag value="-DNVCC=1" />
       <compilerflag value="-DTF_EXTRA_CUDA_CAPABILITIES=3.0,3.5,5.2" />
-      <compilerflag name="-gencode" value='arch=compute_30,code="sm_30,compute_30"' />
+      <compilerflag value="-DTF_COMPILE_LIBRARY" />
+
+      <compilerflag name="-Xcompiler" value="-DTF_COMPILE_LIBRARY" />
+      <compilerflag name="-Xcompiler" value="-DEIGEN_AVOID_STL_ARRAY" />
+      <compilerflag name="-Xcompiler" value="-DGOOGLE_CUDA=1" />
+      <compilerflag name="-Xcompiler" value="-DNVCC=1" />
+      <!--<compilerflag name="-Xcompiler" value="-DTF_EXTRA_CUDA_CAPABILITIES=3.0,3.5,5.2" />-->
+      <compilerflag name="-Xcompiler" value="-DTF_COMPILE_LIBRARY" />
+
+
+      <!--<compilerflag name="-gencode" value='arch=compute_30,code="sm_30,compute_30"' />-->
+      <compilerflag name="-arch" value='sm_30' />
       <!--
       <compilerflag name="-gencode" value='arch=compute_35,code=sm_35' />
          <compilerflag name="-gencode" value='arch=compute_52,code=sm_35' />
@@ -629,7 +667,7 @@
       <compilerflag value="-I../modules/tensorflow" />
       <compilerflag value="-I../modules/eigen" />
       <compilerflag value="-I../modules/protobuf/src" />
-      <compilerflag name="-x" value="cu" />
+      <compilerflag value="-x=cu" />
       <compilerflag value="--expt-relaxed-constexpr" />
       <compilerflag value="-ftz=true" />
 
@@ -790,6 +828,7 @@
       <lib name="${CUDA_SDK}/lib/x64/cublas.lib" if="GPU" />
       <lib name="${CUDA_SDK}/lib/x64/cufft.lib" if="GPU" />
       <lib name="${CUDA_SDK}/lib/x64/curand.lib" if="GPU" />
+      <lib name="${CUDA_SDK}/lib/x64/cudadevrt.lib" if="GPU" />
       <lib name="${CUDA_SDK}/cudnn/cuda/lib/x64/cudnn.lib" if="GPU" />
    </target>
 
