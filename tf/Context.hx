@@ -12,16 +12,17 @@ class Context
    public static var current(get,null):Context;
    public static var currentHandle(get,null):Dynamic;
 
-   function new()
+   function new(inVerbose = false)
    {
-      handle = ctxCreate();
+      handle = ctxCreate(inVerbose);
       scopeStack = [ new Scope("") ];
+      currentContext = this;
    }
 
    public static function get_current() : Context
    {
       if (currentContext==null)
-         currentContext = new Context();
+         new Context();
       return currentContext;
    }
 
@@ -119,7 +120,7 @@ class Context
 
 
 
-   static var ctxCreate = Loader.load("ctxCreate","o");
+   static var ctxCreate = Loader.load("ctxCreate","bo");
    static var ctxBeginOp = Loader.load("ctxBeginOp","ossv");
    static var ctxAddInput = Loader.load("ctxAddInput","oov");
    static var ctxAddInputArray = Loader.load("ctxAddInputArray","oov");

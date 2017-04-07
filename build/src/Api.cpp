@@ -27,6 +27,8 @@ extern "C" int tensorflux_register_prims()
    return 0;
 }
 
+extern void setShowGpuInfo(bool value);
+
 #define TO_OUTPUT(X) \
    if (!val_is_kind(X,outputKind)) val_throw(alloc_string("object not an output")); \
    TF_Output *output = (TF_Output *)val_data(X);
@@ -366,13 +368,14 @@ struct Context
 void destroy_context(value ctx) { delete (Context *)val_data(ctx); }
 
 
-value ctxCreate()
+value ctxCreate(bool inVerbose)
 {
+   setShowGpuInfo(inVerbose);
    value result = alloc_abstract(contextKind, new Context());
    val_gc(result, destroy_context);
    return result;
 }
-DEFINE_PRIME0(ctxCreate)
+DEFINE_PRIME1(ctxCreate)
 
 void ctxBeginOp(value inContext, HxString opType, HxString name)
 {

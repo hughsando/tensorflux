@@ -512,6 +512,8 @@
       <file name="tensorflow/cc/saved_model/loader.cc" />
 
       <section if="GPU" >
+         <file name="tensorflow/core/kernels/concat_lib_gpu.cc" />
+
          <file name="tensorflow/core/common_runtime/gpu/process_state.cc" />
          <file name="tensorflow/core/common_runtime/gpu/pool_allocator.cc" />
          <file name="tensorflow/core/common_runtime/gpu/gpu_util_platform_specific.cc" />

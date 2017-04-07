@@ -49,6 +49,15 @@ class Test
       });
 
       /*
+      var matrix1 = Const.floats([3., 3.],[1]);
+      var matrix2 = Const.floats([2., 2.],[2]);
+      var product = MathOps.multiply(matrix1, matrix2);
+
+      Session.with( function(sess) {
+         var result = sess.runOutput(product);
+         //var result = sess.run([product],[a => 6])[0];
+         trace("Matrix mult " + result);
+      });
       matrix1 = tf.constant([[3., 3.]])
       matrix2 = tf.constant([[2.],[2.]])
       product = tf.matmul(matrix1, matrix2)
