@@ -33,6 +33,7 @@
       <file name="core/platform/denormal.cc" />
       <file name="core/platform/default/tracing.cc" />
       <file name="core/platform/default/logging.cc" />
+      <file name="core/framework/resource_handle.cc" />
       <file name="core/platform/cpu_info.cc" />
       <file name="core/lib/wav/wav_io.cc" />
       <file name="core/lib/strings/stringprintf.cc" />

@@ -1,5 +1,6 @@
 <xml>
    <set name="static_link" value="1" />
+   <set name="CUDA_SDK" value="${CUDA_PATH}" if="CUDA_PATH" unless="CUDA_SDK" />
    <include name="${HXCPP}/toolchain/haxe-target.xml" />
 
    <section if="GPU" >
@@ -17,6 +18,7 @@
        <copy from="${CUDA_SDK}/include/curand.h" to="gen/cuda/include" />
        <copy from="${CUDA_SDK}/include/cublas_v2.h" to="gen/cuda/include" />
        <copy from="${CUDA_SDK}/include/cufft.h" to="gen/cuda/include" />
+       <copy from="${CUDA_SDK}/include/cusolverDn.h" to="gen/cuda/include" />
        <copy from="${CUDA_SDK}/include/cuda_runtime_api.h" to="gen/cuda/include" />
        <!--<copy from="${CUDNN_HOME}/include/cudnn.h" to="gen/cuda/include" />-->
         <nvccflag value="-Igen" />
@@ -119,6 +121,8 @@
       <file name="tensorflow/core/common_runtime/step_stats_collector.cc" />
       <file name="tensorflow/core/common_runtime/threadpool_device.cc" />
       <file name="tensorflow/core/common_runtime/threadpool_device_factory.cc" />
+      <file name="tensorflow/core/common_runtime/process_function_library_runtime.cc" />
+
       <file name="tensorflow/core/framework/allocator.cc" />
       <file name="tensorflow/core/framework/allocator_registry.cc" />
       <file name="tensorflow/core/framework/attr_value_util.cc" />
@@ -141,16 +145,18 @@
       <file name="tensorflow/core/framework/op_def_util.cc" />
       <file name="tensorflow/core/framework/op_kernel.cc" />
       <file name="tensorflow/core/framework/op_segment.cc" />
-      <file name="tensorflow/core/framework/partial_tensor_shape.cc" />
       <file name="tensorflow/core/framework/reader_base.cc" />
       <file name="tensorflow/core/framework/rendezvous.cc" />
       <file name="tensorflow/core/framework/resource_mgr.cc" />
       <file name="tensorflow/core/framework/shape_inference.cc" />
       <file name="tensorflow/core/framework/tensor.cc" />
+      <file name="tensorflow/core/framework/variant.cc" />
+      <file name="tensorflow/core/framework/variant_tensor_data.cc" />
       <file name="tensorflow/core/framework/tensor_reference.cc" />
       <file name="tensorflow/core/framework/tensor_shape.cc" />
       <file name="tensorflow/core/framework/tensor_slice.cc" />
       <file name="tensorflow/core/framework/tensor_util.cc" />
+      <file name="tensorflow/core/framework/resource_handle.cc" />
       <file name="tensorflow/core/framework/tracking_allocator.cc" />
       <file name="tensorflow/core/framework/types.cc" />
       <file name="tensorflow/core/framework/unique_tensor_references.cc" />
@@ -166,7 +172,7 @@
       <file name="tensorflow/core/graph/graph_def_builder.cc" />
       <file name="tensorflow/core/graph/graph_partition.cc" />
       <file name="tensorflow/core/graph/mkl_layout_pass.cc" />
-      <file name="tensorflow/core/graph/mkl_optimizer_merge.cc" />
+      <!--<file name="tensorflow/core/graph/mkl_optimizer_merge.cc" />-->
       <file name="tensorflow/core/graph/mkl_tfconversion_pass.cc" />
       <file name="tensorflow/core/graph/node_builder.cc" />
       <file name="tensorflow/core/graph/optimizer_cse.cc" />
@@ -179,8 +185,26 @@
       <file name="tensorflow/core/grappler/optimizers/layout_optimizer.cc" />
       <file name="tensorflow/core/grappler/optimizers/meta_optimizer.cc" />
       <file name="tensorflow/core/grappler/optimizers/model_pruner.cc" />
+      <file name="tensorflow/core/grappler/optimizers/auto_parallel.cc" />
+      <file name="tensorflow/core/grappler/optimizers/memory_optimizer.cc" />
+      <file name="tensorflow/core/grappler/optimizers/static_schedule.cc" />
+      <file name="tensorflow/core/grappler/utils/topological_sort.cc" />
+      <file name="tensorflow/core/grappler/grappler_item.cc" />
+      <file name="tensorflow/core/grappler/op_types.cc" />
       <file name="tensorflow/core/grappler/utils.cc" />
       <file name="tensorflow/core/grappler/devices.cc" />
+      <file name="tensorflow/core/grappler/costs/graph_properties.cc" />
+      <file name="tensorflow/core/grappler/costs/virtual_scheduler.cc" />
+      <file name="tensorflow/core/grappler/costs/virtual_placer.cc" />
+      <file name="tensorflow/core/grappler/costs/graph_memory.cc" />
+      <file name="tensorflow/core/grappler/costs/op_level_cost_estimator.cc" />
+      <file name="tensorflow/core/grappler/costs/analytical_cost_estimator.cc" />
+      <file name="tensorflow/core/grappler/costs/measuring_cost_estimator.cc" />
+      <file name="tensorflow/core/grappler/costs/robust_stats.cc" />
+      <file name="tensorflow/core/grappler/costs/utils.cc" />
+      <file name="tensorflow/core/grappler/clusters/utils.cc" />
+      <file name="tensorflow/core/grappler/clusters/cluster.cc" />
+      <file name="tensorflow/core/grappler/clusters/virtual_cluster.cc" />
       <file name="tensorflow/core/lib/core/arena.cc" />
       <file name="tensorflow/core/lib/core/bitmap.cc" />
       <file name="tensorflow/core/lib/core/coding.cc" />
@@ -252,6 +276,7 @@
       <file name="tensorflow/core/platform/protobuf_util.cc" />
       <file name="tensorflow/core/platform/setround.cc" />
       <file name="tensorflow/core/platform/tensor_coding.cc" />
+      <file name="tensorflow/core/platform/variant_coding.cc" />
       <file name="tensorflow/core/platform/tracing.cc" />
       <file name="tensorflow/core/util/bcast.cc" />
       <file name="tensorflow/core/util/command_line_flags.cc" />
@@ -280,6 +305,8 @@
       <file name="tensorflow/core/util/util.cc" />
       <file name="tensorflow/core/util/work_sharder.cc" />
       <file name="tensorflow/core/util/memmapped_file_system.cc" />
+      <file name="tensorflow/core/util/matmul_autotune.cc" />
+      <file name="tensorflow/core/util/equal_graph_def.cc" />
       <file name="tensorflow/core/kernels/xent_op.cc" />
       <file name="tensorflow/core/kernels/where_op.cc" />
       <file name="tensorflow/core/kernels/variable_ops.cc" />
@@ -287,7 +314,7 @@
       <file name="tensorflow/core/kernels/transpose_op.cc" />
       <file name="tensorflow/core/kernels/transpose_functor_cpu.cc" />
       <file name="tensorflow/core/kernels/training_ops.cc" />
-      <file name="tensorflow/core/kernels/topk_op.cc" />
+      <file name="tensorflow/core/kernels/training_op_helpers.cc" />
       <file name="tensorflow/core/kernels/tile_ops.cc" />
       <file name="tensorflow/core/kernels/tile_ops_cpu_impl_1.cc" />
       <file name="tensorflow/core/kernels/tile_ops_cpu_impl_2.cc" />
@@ -296,6 +323,7 @@
       <file name="tensorflow/core/kernels/tile_ops_cpu_impl_5.cc" />
       <file name="tensorflow/core/kernels/tile_ops_cpu_impl_6.cc" />
       <file name="tensorflow/core/kernels/tile_ops_cpu_impl_7.cc" />
+      <file name="tensorflow/core/kernels/tile_functor_cpu.cc" />
       <file name="tensorflow/core/kernels/tensor_array_ops.cc" />
       <file name="tensorflow/core/kernels/tensor_array.cc" />
       <file name="tensorflow/core/kernels/strided_slice_op_inst_7.cc" />
@@ -307,6 +335,7 @@
       <file name="tensorflow/core/kernels/strided_slice_op_inst_1.cc" />
       <file name="tensorflow/core/kernels/strided_slice_op_inst_0.cc" />
       <file name="tensorflow/core/kernels/strided_slice_op.cc" />
+      <file name="tensorflow/core/kernels/topk_op.cc" />
       <file name="tensorflow/core/kernels/stack_ops.cc" />
       <file name="tensorflow/core/kernels/split_op.cc" />
       <file name="tensorflow/core/kernels/split_v_op.cc" />
@@ -458,6 +487,7 @@
       <file name="tensorflow/core/kernels/argmax_op.cc" />
       <file name="tensorflow/core/kernels/aggregate_ops.cc" />
       <file name="tensorflow/core/kernels/depthwise_conv_op.cc" />
+      <file name="tensorflow/core/kernels/warn_about_ints.cc" />
       <section unless="isMsvc" >
          <file name="tensorflow/core/kernels/dequantize_op.cc" />
          <file name="tensorflow/core/kernels/meta_support.cc" />
@@ -508,6 +538,7 @@
       <file name="tensorflow/core/kernels/spacetobatch_op.cc" />
       <file name="tensorflow/core/kernels/batchtospace_op.cc" />
       <file name="tensorflow/core/framework/op_gen_lib.cc" />
+      <file name="tensorflow/core/kernels/function_ops.cc" />
       <file name="tensorflow/cc/framework/cc_op_gen.cc" />
       <file name="tensorflow/cc/saved_model/loader.cc" />
 
@@ -518,7 +549,7 @@
          <file name="tensorflow/core/common_runtime/gpu/pool_allocator.cc" />
          <file name="tensorflow/core/common_runtime/gpu/gpu_util_platform_specific.cc" />
          <file name="tensorflow/core/common_runtime/gpu/gpu_util.cc" />
-         <file name="tensorflow/core/common_runtime/gpu/gpu_tracer.cc" />
+         <file name="tensorflow/core/platform/default/gpu_tracer.cc" />
          <file name="tensorflow/core/common_runtime/gpu/gpu_stream_util.cc" />
          <file name="tensorflow/core/common_runtime/gpu/gpu_init.cc" />
          <file name="tensorflow/core/common_runtime/gpu/gpu_device.cc" />
@@ -600,6 +631,7 @@
       <compilerflag value="-DPLATFORM_WINDOWS" if="windows" />
       <compilerflag value="-DNOMINMAX" if="windows" />
       <compilerflag value="-DTF_COMPILE_LIBRARY" />
+      <compilerflag value="-DHX_GPU" if="GPU" />
       <section if="isMsvc" >
          <compilerflag value="-DCOMPILER_MSVC" />
          <compilerflag value="-D_WIN32_WINNT=0x0A00"/>
@@ -669,6 +701,7 @@
       <compilerflag value="-I../modules/tensorflow" />
       <compilerflag value="-I../modules/eigen" />
       <compilerflag value="-I../modules/protobuf/src" />
+      <compilerflag value="-I.." />
       <compilerflag value="-x=cu" />
       <compilerflag value="--expt-relaxed-constexpr" />
       <compilerflag value="-ftz=true" />
@@ -690,6 +723,7 @@
       <file name="tensorflow/core/kernels/tile_ops_gpu_impl_3.cu.cc" />
       <file name="tensorflow/core/kernels/tile_ops_gpu_impl_2.cu.cc" />
       <file name="tensorflow/core/kernels/tile_ops_gpu_impl_1.cu.cc" />
+      <file name="tensorflow/core/kernels/tile_functor_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/strided_slice_op_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/split_lib_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/sparse_xent_op_gpu.cu.cc" />
@@ -734,7 +768,8 @@
       <file name="tensorflow/core/kernels/dilation_ops_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/depthwise_conv_op_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/depthtospace_op_gpu.cu.cc" />
-      <file name="tensorflow/core/kernels/dense_update_ops_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/dense_update_functor_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/dynamic_stitch_op_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/cwise_op_gpu_zeta.cu.cc" />
       <file name="tensorflow/core/kernels/cwise_op_gpu_tanh.cu.cc" />
       <file name="tensorflow/core/kernels/cwise_op_gpu_tan.cu.cc" />
@@ -809,6 +844,8 @@
       <file name="tensorflow/core/kernels/aggregate_ops_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/adjust_hue_op_gpu.cu.cc" />
       <file name="tensorflow/core/kernels/adjust_contrast_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/topk_op_gpu.cu.cc" />
+      <file name="tensorflow/core/kernels/where_op_gpu.cu.cc" />
 
       <file name="tensorflow/core/platform/cuda_libdevice_path.cc" />
       <file name="tensorflow/core/platform/default/cuda_libdevice_path.cc" />

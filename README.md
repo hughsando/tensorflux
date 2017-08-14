@@ -5,6 +5,10 @@ Build
 -----
 `cd build && haxe --run Build.hx all`
 
+or
+
+`cd build && haxe --run Build.hx all -DGPU`
+
 This will create the dll, and run a test program to see if it works.
 
 Why a script?

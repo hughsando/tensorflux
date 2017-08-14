@@ -370,7 +370,9 @@ void destroy_context(value ctx) { delete (Context *)val_data(ctx); }
 
 value ctxCreate(bool inVerbose)
 {
+   #ifdef HX_GPU
    setShowGpuInfo(inVerbose);
+   #endif
    value result = alloc_abstract(contextKind, new Context());
    val_gc(result, destroy_context);
    return result;

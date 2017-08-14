@@ -19,3 +19,6 @@
 [submodule "modules/zlib"]
 	path = modules/zlib
 	url = https://github.com/madler/zlib.git
+[submodule "external/cub_archive"]
+	path = external/cub_archive
+	url = https://github.com/NVlabs/cub.git
