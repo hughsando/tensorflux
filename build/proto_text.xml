@@ -20,6 +20,18 @@
          <file name="core/platform/windows/env_time.cc" />
          <file name="core/platform/windows/env.cc" />
       </section>
+
+      <section if="linux" >
+         <file name="core/platform/posix/posix_file_system.cc" />
+         <file name="core/platform/posix/port.cc" />
+         <file name="core/platform/posix/net.cc" />
+         <file name="core/platform/posix/env_time.cc" />
+         <file name="core/platform/posix/env.cc" />
+         <file name="core/platform/posix/load_library.cc" />
+      </section>
+
+
+
       <file name="tools/proto_text/gen_proto_text_functions_lib.cc" />
       <file name="tools/proto_text/gen_proto_text_functions.cc" />
       <file name="core/platform/default/protobuf.cc" />
