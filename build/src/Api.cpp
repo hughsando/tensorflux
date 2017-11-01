@@ -27,6 +27,8 @@ extern "C" int tensorflux_register_prims()
    return 0;
 }
 
+
+
 extern void setShowGpuInfo(bool value);
 
 #define TO_OUTPUT(X) \
@@ -379,6 +381,67 @@ value ctxCreate(bool inVerbose)
 }
 DEFINE_PRIME1(ctxCreate)
 
+
+void ctxLoadGraph(value inContext, value inGraphDef)
+{
+   TO_CONTEXT;
+
+   TF_Buffer tfBuffer = { 0,0,0 };
+
+   if (val_is_object(inGraphDef))
+   {
+      static field bField = 0;
+      static field lengthField = 0;
+      if (bField==0)
+      {
+         bField = val_id("b");
+         lengthField = val_id("length");
+      }
+      value b = val_field(inGraphDef, bField);
+      value len = val_field(inGraphDef, lengthField);
+      if (val_is_string(b) && val_is_int(len))
+      {
+         tfBuffer.data = (unsigned char *)val_string(b);
+         tfBuffer.length =  val_int(len);
+      }
+      else if (val_is_buffer(b) && val_is_int(len))
+      {
+         tfBuffer.data =  (unsigned char *)buffer_data(val_to_buffer(b));
+         tfBuffer.length =  val_int(len);
+      }
+   }
+   if (!tfBuffer.data)
+      val_throw( alloc_string("Bad byte data") );
+
+   TF_ImportGraphDefOptions *options = TF_NewImportGraphDefOptions();
+
+   TF_GraphImportGraphDef( context->graph, &tfBuffer, options, context->status );
+
+   TF_DeleteImportGraphDefOptions(options);
+
+   context->checkStatus();
+}
+DEFINE_PRIME2v(ctxLoadGraph)
+
+value ctxGetOperations(value inContext)
+{
+   TO_CONTEXT
+
+   printf("Operations\n");
+   size_t pos = 0;
+   TF_Operation* oper;
+   while ((oper = TF_GraphNextOperation(context->graph, &pos)) != nullptr)
+   {
+      printf("  %s\n", TF_OperationName(oper) );
+   }
+   printf("--\n");
+
+   return alloc_null();
+}
+DEFINE_PRIME1(ctxGetOperations)
+
+
+
 void ctxBeginOp(value inContext, HxString opType, HxString name)
 {
    TO_CONTEXT;
@@ -626,6 +689,8 @@ value sesCreate(value inContext, value inConfig, HxString target)
 {
    TO_CONTEXT;
 
+
+
    TF_SessionOptions *opts = TF_NewSessionOptions();
    if (!val_is_null(inConfig))
    {
@@ -641,6 +706,7 @@ value sesCreate(value inContext, value inConfig, HxString target)
          config.set_log_device_placement(val_bool(logPlace));
       TF_SetConfig(opts, config);
    }
+
 
    TF_Session *session = TF_NewSession(context->graph, opts, context->status);
    TF_DeleteSessionOptions(opts);
@@ -739,3 +805,7 @@ void sesRun(value inSession, value fetches, value feedTargets, value feedValues,
    }
 }
 DEFINE_PRIME5v(sesRun)
+
+
+
+

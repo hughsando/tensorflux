@@ -31,6 +31,16 @@ class Context
       return current.handle;
    }
 
+   public function loadGraph(graphDef:haxe.io.Bytes) : Void
+   {
+      ctxLoadGraph(handle,graphDef);
+   }
+
+   public function getOperations() : Void
+   {
+      ctxGetOperations(handle);
+   }
+
 
    public function beginOp(opName:String, nodeName:String) : Void
    {
@@ -121,6 +131,8 @@ class Context
 
 
    static var ctxCreate = Loader.load("ctxCreate","bo");
+   static var ctxLoadGraph = Loader.load("ctxLoadGraph","oov");
+   static var ctxGetOperations = Loader.load("ctxGetOperations","oo");
    static var ctxBeginOp = Loader.load("ctxBeginOp","ossv");
    static var ctxAddInput = Loader.load("ctxAddInput","oov");
    static var ctxAddInputArray = Loader.load("ctxAddInputArray","oov");
