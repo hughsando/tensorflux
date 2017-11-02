@@ -9,6 +9,7 @@
 vkind tensorKind;
 vkind contextKind;
 vkind outputKind;
+vkind operationKind;
 vkind sessionKind;
 
 extern "C" void InitIDs()
@@ -17,6 +18,7 @@ extern "C" void InitIDs()
    kind_share(&contextKind,"tfContext");
    kind_share(&outputKind,"tfOutput");
    kind_share(&sessionKind,"tfSession");
+   kind_share(&operationKind,"tfOperation");
 }
 
 DEFINE_ENTRY_POINT(InitIDs)
@@ -34,6 +36,10 @@ extern void setShowGpuInfo(bool value);
 #define TO_OUTPUT(X) \
    if (!val_is_kind(X,outputKind)) val_throw(alloc_string("object not an output")); \
    TF_Output *output = (TF_Output *)val_data(X);
+
+#define TO_OPERATION \
+   if (!val_is_kind(inOperation,operationKind)) val_throw(alloc_string("object not a operation")); \
+   TF_Operation *operation = (TF_Operation *)val_data(inOperation);
 
 // ------ Tensor -----------------------
 
@@ -423,22 +429,40 @@ void ctxLoadGraph(value inContext, value inGraphDef)
 }
 DEFINE_PRIME2v(ctxLoadGraph)
 
-value ctxGetOperations(value inContext)
+void ctxGetOperations(value inContext,value outNames)
 {
    TO_CONTEXT
 
-   printf("Operations\n");
    size_t pos = 0;
    TF_Operation* oper;
+   int idx = 0;
+   while ((oper = TF_GraphNextOperation(context->graph, &pos)) != nullptr)
+      val_array_set_i(outNames, idx++, alloc_string( TF_OperationName(oper) ) );
+
+}
+DEFINE_PRIME2v(ctxGetOperations)
+
+
+value ctxFindOperation(value inContext,HxString inName)
+{
+   TO_CONTEXT
+
+   size_t pos = 0;
+   TF_Operation* oper;
+   int idx = 0;
+   std::string search = inName.c_str();
    while ((oper = TF_GraphNextOperation(context->graph, &pos)) != nullptr)
    {
-      printf("  %s\n", TF_OperationName(oper) );
+      if (search==TF_OperationName(oper))
+      {
+         value result = alloc_abstract(operationKind, oper);
+         //val_gc(result, destroy_output);
+         return result;
+      }
    }
-   printf("--\n");
-
    return alloc_null();
 }
-DEFINE_PRIME1(ctxGetOperations)
+DEFINE_PRIME2(ctxFindOperation)
 
 
 
@@ -682,6 +706,82 @@ void ctxAddAttribTensor(value inContext, HxString inName, value inTensor)
    context->checkStatus();
 }
 DEFINE_PRIME3v(ctxAddAttribTensor)
+
+// --- Operation ---------------------------------------------------
+
+HxString opGetName(value inOperation)
+{
+   TO_OPERATION
+
+   return HxString( TF_OperationName(operation) );
+}
+DEFINE_PRIME1(opGetName)
+
+
+HxString opGetType(value inOperation)
+{
+   TO_OPERATION
+   return HxString( TF_OperationOpType(operation) );
+}
+DEFINE_PRIME1(opGetType)
+
+
+HxString opGetDevice(value inOperation)
+{
+   TO_OPERATION
+   return HxString( TF_OperationDevice(operation) );
+}
+DEFINE_PRIME1(opGetDevice)
+
+
+int opInputCount(value inOperation)
+{
+   TO_OPERATION
+   return TF_OperationNumInputs(operation);
+}
+DEFINE_PRIME1(opInputCount)
+
+
+int opInputType(value inOperation,int index)
+{
+   TO_OPERATION
+   TF_Input o = {operation,index};
+   return (int)TF_OperationInputType(o);
+}
+DEFINE_PRIME2(opInputType)
+
+
+
+int opOutputCount(value inOperation)
+{
+   TO_OPERATION
+   return TF_OperationNumOutputs(operation);
+}
+DEFINE_PRIME1(opOutputCount)
+
+
+value opOutput(value inOperation,int index)
+{
+   TO_OPERATION
+   TF_Output *out = new TF_Output({operation,index});
+   value result = alloc_abstract(outputKind, out);
+   val_gc(result, destroy_output);
+   return result;
+}
+DEFINE_PRIME2(opOutput)
+
+
+value opInput(value inOperation,int index)
+{
+   TO_OPERATION
+   TF_Output *out = new TF_Output({operation,index});
+   value result = alloc_abstract(outputKind, out);
+   val_gc(result, destroy_output);
+   return result;
+}
+DEFINE_PRIME2(opInput)
+
+
 
 // --- Session ---------------------------------------------------
 

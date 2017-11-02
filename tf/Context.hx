@@ -36,9 +36,19 @@ class Context
       ctxLoadGraph(handle,graphDef);
    }
 
-   public function getOperations() : Void
+   public function getOperationNames() : Array<String>
    {
-      ctxGetOperations(handle);
+      var result = new Array<String>();
+      ctxGetOperations(handle,result);
+      return result;
+   }
+
+   public function findOperation(name:String) : Operation
+   {
+      var handle = ctxFindOperation(handle,name);
+      if (handle==null)
+         return null;
+      return new Operation(handle);
    }
 
 
@@ -132,7 +142,8 @@ class Context
 
    static var ctxCreate = Loader.load("ctxCreate","bo");
    static var ctxLoadGraph = Loader.load("ctxLoadGraph","oov");
-   static var ctxGetOperations = Loader.load("ctxGetOperations","oo");
+   static var ctxGetOperations = Loader.load("ctxGetOperations","oov");
+   static var ctxFindOperation = Loader.load("ctxFindOperation","oso");
    static var ctxBeginOp = Loader.load("ctxBeginOp","ossv");
    static var ctxAddInput = Loader.load("ctxAddInput","oov");
    static var ctxAddInputArray = Loader.load("ctxAddInputArray","oov");
