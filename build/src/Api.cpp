@@ -11,6 +11,7 @@ vkind contextKind;
 vkind outputKind;
 vkind operationKind;
 vkind sessionKind;
+vkind dataKind;
 
 extern "C" void InitIDs()
 {
@@ -19,6 +20,7 @@ extern "C" void InitIDs()
    kind_share(&outputKind,"tfOutput");
    kind_share(&sessionKind,"tfSession");
    kind_share(&operationKind,"tfOperation");
+   kind_share(&dataKind,"data");
 }
 
 DEFINE_ENTRY_POINT(InitIDs)
@@ -88,6 +90,14 @@ const char *tfGetData(value inTensor)
    return (const char *)TF_TensorData(tensor);
 }
 DEFINE_PRIME1(tfGetData)
+
+value tfGetDataHandle(value inTensor)
+{
+   TO_TENSOR;
+   return alloc_abstract( dataKind, TF_TensorData(tensor) );
+}
+DEFINE_PRIME1(tfGetDataHandle)
+
 
 void destroy_tensor(value inTensor)
 {
@@ -203,7 +213,7 @@ value tfAllocateArray(value inData, value inShape,TF_DataType inType)
 
    if (n<1)
    {
-      // huh?
+      // Will fill later
    }
    else if (isArray)
    {

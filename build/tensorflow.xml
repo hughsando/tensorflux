@@ -852,7 +852,7 @@
    </files>
 
 
-   <target id="default" tool="linker" toolid="dll" output="tensorflow" >
+   <target id="default" tool="linker" toolid="dll" output="tensorflux" >
       <files id="tensorflow" />
       <files id="hxcpp" />
       <files id="gpu" if="GPU" />

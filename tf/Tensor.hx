@@ -15,6 +15,9 @@ abstract Tensor(Dynamic)
 
    inline public function destroy():Void { tfDestroy(this); this=null; }
 
+   public var dataHandle(get,never):Dynamic;
+   public function get_dataHandle():Dynamic return tfGetDataHandle(this);
+
    #if cpp
    public var data(get,never):cpp.Pointer<cpp.Void>;
    public function get_data():cpp.Pointer<cpp.Void> return cast tfGetData(this);
@@ -70,6 +73,7 @@ abstract Tensor(Dynamic)
    public static var tfGetDim = Loader.load("tfGetDim","oii");
    public static var tfGetByteSize = Loader.load("tfGetByteSize","oi");
    public static var tfDestroy = Loader.load("tfDestroy","ov");
+   public static var tfGetDataHandle = Loader.load("tfGetDataHandle","oo");
    #if cpp
    public static var tfGetData = Loader.load("tfGetData","oc");
    #end

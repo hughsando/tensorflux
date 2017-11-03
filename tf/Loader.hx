@@ -15,6 +15,6 @@ class Loader
 
    public static inline macro function load(inName2:Expr, inSig:Expr)
    {
-      return macro cpp.Prime.load("tensorflow", $inName2, $inSig, false);
+      return macro cpp.Prime.load("tensorflux", $inName2, $inSig, false);
    }
 }

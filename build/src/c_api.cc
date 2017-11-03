@@ -1359,7 +1359,7 @@ TF_AttrMetadata TF_OperationGetAttrMetadata(TF_Operation* oper,
   const auto* attr = GetAttrValue(oper, attr_name, status);
   if (!status->status.ok())
   {
-     memset(&memset,0,sizeof(metadata));
+     memset(&metadata,0,sizeof(metadata));
      return metadata;
   }
   switch (attr->value_case()) {
