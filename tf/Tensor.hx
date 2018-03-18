@@ -35,6 +35,13 @@ abstract Tensor(Dynamic)
    }
 
    @:from
+   public static function fromBool(inVal:Bool) : Tensor
+   {
+      return new Tensor( tfAllocateBool(inVal) );
+   }
+
+
+   @:from
    public static function float(inVal:Float) : Tensor
    {
       return new Tensor( tfAllocateFloat(inVal) );
@@ -51,6 +58,7 @@ abstract Tensor(Dynamic)
    {
       return new Tensor( tfAllocateInts(value,shape) );
    }
+
 
    public static function int64s(value:Dynamic, ?shape:Array<Int>) : Tensor
    {
@@ -80,6 +88,7 @@ abstract Tensor(Dynamic)
    public static var tfAllocate = Loader.load("tfAllocate","ioio");
    public static var tfAllocateInt32 = Loader.load("tfAllocateInt32","io");
    public static var tfAllocateFloat = Loader.load("tfAllocateFloat","do");
+   public static var tfAllocateBool = Loader.load("tfAllocateBool","bo");
    public static var tfAllocateFloats = Loader.load("tfAllocateFloats","ooo");
    public static var tfAllocateInts = Loader.load("tfAllocateInts","ooo");
    public static var tfAllocateInt64s = Loader.load("tfAllocateInt64s","ooo");

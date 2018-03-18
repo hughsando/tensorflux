@@ -143,6 +143,18 @@ value tfAllocateFloat(double inValue)
 }
 DEFINE_PRIME1(tfAllocateFloat)
 
+value tfAllocateBool(bool inValue)
+{
+   int64_t dim = 1;
+   TF_Tensor *tensor = TF_AllocateTensor(TF_BOOL, &dim, 0, sizeof(bool));
+   *(bool *)TF_TensorData(tensor) = inValue;
+   value result = alloc_abstract(tensorKind, tensor);
+   val_gc(result, destroy_tensor);
+   return result;
+}
+DEFINE_PRIME1(tfAllocateBool)
+
+
 
 template<typename T>
 value tfAllocateArray(value inData, value inShape,TF_DataType inType)
